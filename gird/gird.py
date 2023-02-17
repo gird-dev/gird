@@ -73,11 +73,14 @@ def run_target(
 
 
 def list_rules(rules: Iterable[Rule]):
-    print("Targets:")
+    print("Targets:", flush=True)
     for rule in rules:
-        print(f"    {rule.target}")
+        print(f"    {rule.target}", flush=True)
         if rule.help:
-            print("\n".join("        " + line for line in rule.help.split("\n")))
+            print(
+                "\n".join("        " + line for line in rule.help.split("\n")),
+                flush=True,
+            )
 
 
 def main():
