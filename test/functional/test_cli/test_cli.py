@@ -1,10 +1,9 @@
-import os
 import pathlib
 import shutil
 import subprocess
 
 
-def test(tmp_path):
+def test(tmp_path, run):
     """Test CLI arguments.
     - girdfile
     - girddir
@@ -32,11 +31,9 @@ def test(tmp_path):
         "target",
     ]
 
-    os.environ["PYTHONPATH"] += os.pathsep + str(tmp_path.resolve())
-
-    process = subprocess.run(
+    process = run(
+        tmp_path,
         args,
-        cwd=tmp_path,
         check=True,
         text=True,
         stdout=subprocess.PIPE,

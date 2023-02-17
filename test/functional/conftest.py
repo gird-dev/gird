@@ -8,7 +8,37 @@ import pytest
 
 
 @pytest.fixture
-def process_girdfile():
+def run():
+    def _run(pytest_tmp_dir: pathlib.Path, *args, **kwargs):
+        """Helper function for using subprocess.run in Pytest tmp_path.
+
+        Parameters
+        ----------
+        pytest_tmp_dir
+            Temporary directory to run a test in. Will be added to PYTHONPATH
+            environment variable, and used as cwd in the subprocess.run call.
+        args
+            Positional arguments for subprocess.run.
+        kwargs
+            Keyword arguments for subprocess.run.
+        """
+        pythonpath = os.environ.get("PYTHONPATH", "")
+        if pythonpath:
+            pythonpath += os.pathsep
+        pythonpath += str(pytest_tmp_dir.resolve())
+        os.environ["PYTHONPATH"] = pythonpath
+
+        return subprocess.run(
+            *args,
+            cwd=pytest_tmp_dir,
+            **kwargs,
+        )
+
+    return _run
+
+
+@pytest.fixture
+def process_girdfile(run):
     def _process_girdfile(
         pytest_tmp_dir: pathlib.Path,
         test_dir: pathlib.Path,
@@ -35,12 +65,10 @@ def process_girdfile():
         girddir = pytest_tmp_dir / ".gird"
         girddir_tmp = girddir / "tmp"
 
-        os.environ["PYTHONPATH"] += os.pathsep + str(pytest_tmp_dir.resolve())
-
         # First run with no target to assert Makefile contents.
-        subprocess.run(
+        run(
+            pytest_tmp_dir,
             ["gird"],
-            cwd=pytest_tmp_dir,
             check=True,
         )
 
@@ -54,9 +82,9 @@ def process_girdfile():
 
         # Run also with target if one is specified.
         if target:
-            subprocess.run(
+            run(
+                pytest_tmp_dir,
                 ["gird", target],
-                cwd=pytest_tmp_dir,
                 check=True,
             )
 
