@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "gird"
+version = "1.0.0"
+description = "Make-like build-tool & task runner for Python"
+authors = ["Tuukka Ruhanen <tuukka.t.ruhanen@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.scripts]
+gird = "gird.gird:main"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
+isort = "^5.11.4"
+black = "^22.12.0"
+jinja2 = "^3.1.2"
+twine = "^4.0.2"
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
