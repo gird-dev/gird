@@ -68,6 +68,7 @@ or if the target file doesn't exist.
 import pathlib
 import gird
 wheel = pathlib.Path("package.whl")
+
 rule_build = gird.rule(
     target=wheel,
     deps=pathlib.Path("module.py"),
@@ -105,6 +106,7 @@ A rule with a Python function recipe.
 import json
 JSON1 = pathlib.Path("file1.json")
 JSON2 = pathlib.Path("file2.json")
+
 def create_target():
      JSON2.write_text(
          json.dumps(
@@ -113,6 +115,7 @@ def create_target():
              ).update(value2="value2")
          )
      )
+
 gird.rule(
     target=JSON2,
     deps=JSON1,
@@ -125,6 +128,7 @@ A Python function as a dependency to arbitrarily trigger rules.
 ```python
 import datetime
 EPOCH = datetime.datetime(2030, 1, 1)
+
 @gird.dep
 def unconditional_until_epoch():
     """Return the "updated" state of this dependency. Here, render a
@@ -132,6 +136,7 @@ def unconditional_until_epoch():
     before EPOCH.
     """
     return datetime.datetime.now() < EPOCH
+
 gird.rule(
     target=JSON2,
     deps=[JSON1, unconditional_until_epoch],
