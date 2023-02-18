@@ -31,6 +31,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--verbose",
+        "-v",
         action="store_true",
         help="Increase verbosity.",
     )
