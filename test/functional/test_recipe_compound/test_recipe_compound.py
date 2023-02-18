@@ -11,7 +11,7 @@ def test(tmp_path, process_girdfile):
     path_target = tmp_path / "target"
 
     process_girdfile(
-        pytest_tmp_dir=tmp_path,
+        pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
         target="target",
     )

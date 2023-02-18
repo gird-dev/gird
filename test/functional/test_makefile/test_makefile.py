@@ -5,7 +5,7 @@ TEST_DIR = pathlib.Path(__file__).parent
 
 def test(tmp_path, process_girdfile):
     process_girdfile(
-        pytest_tmp_dir=tmp_path,
+        pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
         target="file4",
     )

@@ -9,12 +9,12 @@ import pytest
 
 @pytest.fixture
 def run():
-    def _run(pytest_tmp_dir: pathlib.Path, *args, **kwargs):
+    def _run(pytest_tmp_path: pathlib.Path, *args, **kwargs):
         """Helper function for using subprocess.run in Pytest tmp_path.
 
         Parameters
         ----------
-        pytest_tmp_dir
+        pytest_tmp_path
             Temporary directory to run a test in. Will be added to PYTHONPATH
             environment variable, and used as cwd in the subprocess.run call.
         args
@@ -22,17 +22,17 @@ def run():
         kwargs
             Keyword arguments for subprocess.run.
         """
-        # pytest_tmp_dir is not the directory where pytest is originally
+        # pytest_tmp_path is not the directory where pytest is originally
         # invoked, so it must be added to PYTHONPATH.
         pythonpath = os.environ.get("PYTHONPATH", "")
         if pythonpath:
             pythonpath += os.pathsep
-        pythonpath += str(pytest_tmp_dir.resolve())
+        pythonpath += str(pytest_tmp_path.resolve())
         os.environ["PYTHONPATH"] = pythonpath
 
         return subprocess.run(
             *args,
-            cwd=pytest_tmp_dir,
+            cwd=pytest_tmp_path,
             **kwargs,
         )
 
@@ -42,7 +42,7 @@ def run():
 @pytest.fixture
 def process_girdfile(run):
     def _process_girdfile(
-        pytest_tmp_dir: pathlib.Path,
+        pytest_tmp_path: pathlib.Path,
         test_dir: pathlib.Path,
         target: Optional[str] = None,
     ):
@@ -50,7 +50,7 @@ def process_girdfile(run):
 
         Parameters
         ----------
-        pytest_tmp_dir
+        pytest_tmp_path
             Temporary directory to run this test in.
         test_dir
             Original test directory with girdfile.py. If the directory also
@@ -59,24 +59,24 @@ def process_girdfile(run):
         target
             Name of the target to be run.
         """
-        # Copy girdfile.py to pytest_tmp_dir.
+        # Copy girdfile.py to pytest_tmp_path.
         path_girdfile_original = test_dir / "girdfile.py"
-        path_girdfile = pytest_tmp_dir / "girdfile.py"
+        path_girdfile = pytest_tmp_path / "girdfile.py"
         shutil.copy(path_girdfile_original, path_girdfile)
 
-        girddir = pytest_tmp_dir / ".gird"
-        girddir_tmp = girddir / "tmp"
+        gird_path = pytest_tmp_path / ".gird"
+        gird_path_tmp = gird_path / "tmp"
 
         # First run with no target to assert Makefile contents.
         run(
-            pytest_tmp_dir,
+            pytest_tmp_path,
             ["gird"],
             check=True,
         )
 
         for makefile_name in ("Makefile1", "Makefile2"):
             path_makefile_target = test_dir / makefile_name
-            path_makefile_result = girddir_tmp / makefile_name
+            path_makefile_result = gird_path_tmp / makefile_name
             if path_makefile_target.exists():
                 assert (
                     path_makefile_result.read_text() == path_makefile_target.read_text()
@@ -85,7 +85,7 @@ def process_girdfile(run):
         # Run also with target if one is specified.
         if target:
             run(
-                pytest_tmp_dir,
+                pytest_tmp_path,
                 ["gird", target],
                 check=True,
             )

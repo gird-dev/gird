@@ -15,7 +15,7 @@ def test(tmp_path, process_girdfile):
     shutil.copy(path_package_init_original, path_package_init)
 
     process_girdfile(
-        pytest_tmp_dir=tmp_path,
+        pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
         target="target",
     )

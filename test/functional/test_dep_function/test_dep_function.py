@@ -10,7 +10,7 @@ def test_false(tmp_path, process_girdfile):
     path_target = tmp_path / "target_false"
 
     process_girdfile(
-        pytest_tmp_dir=tmp_path,
+        pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
         target="target_false",
     )
@@ -18,7 +18,7 @@ def test_false(tmp_path, process_girdfile):
     mtime_first = path_target.stat().st_mtime_ns
 
     process_girdfile(
-        pytest_tmp_dir=tmp_path,
+        pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
         target="target_false",
     )
@@ -35,7 +35,7 @@ def test_true(tmp_path, process_girdfile):
     path_target = tmp_path / "target_true"
 
     process_girdfile(
-        pytest_tmp_dir=tmp_path,
+        pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
         target="target_true",
     )
@@ -43,7 +43,7 @@ def test_true(tmp_path, process_girdfile):
     mtime_first = path_target.stat().st_mtime_ns
 
     process_girdfile(
-        pytest_tmp_dir=tmp_path,
+        pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
         target="target_true",
     )

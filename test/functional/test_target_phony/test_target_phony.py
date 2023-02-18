@@ -10,7 +10,7 @@ def test(tmp_path, process_girdfile):
     path_result = tmp_path / "target"
 
     process_girdfile(
-        pytest_tmp_dir=tmp_path,
+        pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
         target="target",
     )
@@ -18,7 +18,7 @@ def test(tmp_path, process_girdfile):
     mtime_first = path_result.stat().st_mtime_ns
 
     process_girdfile(
-        pytest_tmp_dir=tmp_path,
+        pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
         target="target",
     )
