@@ -53,7 +53,6 @@ def parse_args() -> argparse.Namespace:
 
 def run_target(
     target: str,
-    capture_output: bool = True,
 ):
     makefile_dir = get_gird_path_tmp()
     gird_path_run = get_gird_path_run()
@@ -70,7 +69,6 @@ def run_target(
     process = subprocess.run(
         args,
         text=True,
-        capture_output=capture_output,
     )
 
     if process.returncode != 0:
@@ -106,5 +104,4 @@ def main():
     if args.target:
         run_target(
             args.target,
-            capture_output=not args.verbose,
         )
