@@ -9,8 +9,15 @@ import pytest
 
 @pytest.fixture
 def run():
-    def _run(pytest_tmp_path: pathlib.Path, *args, **kwargs):
+    def _run(
+        pytest_tmp_path: pathlib.Path,
+        *args,
+        raise_on_error: bool = True,
+        **kwargs,
+    ) -> subprocess.CompletedProcess:
         """Helper function for using subprocess.run in Pytest tmp_path.
+
+        stdout & stderr will be set to subprocess.PIPE.
 
         Parameters
         ----------
@@ -19,6 +26,9 @@ def run():
             environment variable, and used as cwd in the subprocess.run call.
         args
             Positional arguments for subprocess.run.
+        raise_on_error
+            If True, raise a RuntimeError if the returncode of the command
+            returns non-zero exit code.
         kwargs
             Keyword arguments for subprocess.run.
         """
@@ -30,11 +40,24 @@ def run():
         pythonpath += str(pytest_tmp_path.resolve())
         os.environ["PYTHONPATH"] = pythonpath
 
-        return subprocess.run(
+        process = subprocess.run(
             *args,
             cwd=pytest_tmp_path,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             **kwargs,
         )
+
+        if raise_on_error and process.returncode != 0:
+            raise RuntimeError(
+                f"The process of subprocess.run with args `{args}` returned exit "
+                f"code {process.returncode}.\n\n"
+                f"Stdout:\n{process.stdout}\n\n"
+                f"Stderr:\n{process.stderr}\n"
+            )
+
+        return process
 
     return _run
 
@@ -71,7 +94,6 @@ def process_girdfile(run):
         run(
             pytest_tmp_path,
             ["gird"],
-            check=True,
         )
 
         for makefile_name in ("Makefile1", "Makefile2"):
@@ -87,7 +109,6 @@ def process_girdfile(run):
             run(
                 pytest_tmp_path,
                 ["gird", target],
-                check=True,
             )
 
     return _process_girdfile

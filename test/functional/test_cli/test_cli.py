@@ -13,7 +13,7 @@ def test(tmp_path, run):
     """
     # Use unconventionally named girdfile & gird_path.
     path_girdfile_original = pathlib.Path(__file__).parent / "girdfile2.py"
-    path_girdfile = tmp_path / "girdfile2.py"
+    path_girdfile = tmp_path / path_girdfile_original.name
     gird_path = tmp_path / ".gird2"
 
     shutil.copy(path_girdfile_original, path_girdfile)
@@ -34,9 +34,6 @@ def test(tmp_path, run):
     process = run(
         tmp_path,
         args,
-        check=True,
-        text=True,
-        stdout=subprocess.PIPE,
     )
     stdout = process.stdout
 
