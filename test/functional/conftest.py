@@ -22,6 +22,8 @@ def run():
         kwargs
             Keyword arguments for subprocess.run.
         """
+        # pytest_tmp_dir is not the directory where pytest is originally
+        # invoked, so it must be added to PYTHONPATH.
         pythonpath = os.environ.get("PYTHONPATH", "")
         if pythonpath:
             pythonpath += os.pathsep
