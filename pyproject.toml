@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gird"
-version = "1.0.3"
+version = "1.1.0"
 description = "Make-like build tool & task runner for Python"
 authors = ["Tuukka Ruhanen <tuukka.t.ruhanen@gmail.com>"]
 homepage = "https://github.com/truhanen/gird"

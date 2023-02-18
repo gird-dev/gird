@@ -1,27 +1,27 @@
 .ONESHELL:
 
-../../file0:
-	echo 'line1\n' >> ../../file0
-	echo 'line2\n' >> ../../file0
+file0:
+	echo 'line1\n' >> file0
+	echo 'line2\n' >> file0
 
 .PHONY: test
 test:
 	echo 'Test succeeded.'
 
-../../package.whl: ../../source.py
+package.whl: source.py
 	buildtool --format wheel
 
 .PHONY: all
-all: test ../../package.whl
+all: test package.whl
 
-../../file1: function_dep
-	echo 'line1' > ../../file1
+file1: .gird/tmp/function_dep
+	echo 'line1' > file1
 
-../../file2: function_dep
-	(cd ../..; python -c 'from girdfile import create_target2; create_target2()')
+file2: .gird/tmp/function_dep
+	python -c 'from girdfile import create_target2; create_target2()'
 
-../../file3: ../../file1 ../../file2
-	(cd ../..; python -c 'from girdfile import create_target3; create_target3()')
+file3: file1 file2
+	python -c 'from girdfile import create_target3; create_target3()'
 
-../../file4: ../../file3
-	touch ../../file4
+file4: file3
+	touch file4

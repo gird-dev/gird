@@ -6,8 +6,8 @@ import gird
 rule_format = gird.rule(
     target=pathlib.Path("file0"),
     recipe=(
-        r"""echo 'line1\n' >> ../../file0
-echo 'line2\n' >> ../../file0"""
+        r"""echo 'line1\n' >> file0
+echo 'line2\n' >> file0"""
     ),
 )
 
@@ -53,7 +53,7 @@ def function_dep():
 rule_target1 = gird.rule(
     target=PATH_TARGET1,
     deps=[function_dep],
-    recipe=f"echo 'line1' > ../../{PATH_TARGET1.name}",
+    recipe=f"echo 'line1' > {PATH_TARGET1.name}",
 )
 
 rule_target2 = gird.rule(
@@ -72,5 +72,5 @@ rule_target3 = gird.rule(
 rule_target4 = gird.rule(
     target=PATH_TARGET4,
     deps=[rule_target3],
-    recipe=f"touch ../../{PATH_TARGET4.name}",
+    recipe=f"touch {PATH_TARGET4.name}",
 )

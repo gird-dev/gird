@@ -3,7 +3,7 @@
 import os
 from typing import Callable
 
-from .girddir import get_girddir_tmp
+from .girdpath import get_gird_path_tmp
 
 
 class DependencyFunction:
@@ -26,7 +26,7 @@ class DependencyFunction:
 
         This function should be called at most once when any rule is executed.
         """
-        tag_path = get_girddir_tmp() / self.name
+        tag_path = get_gird_path_tmp() / self.name
         tag_path.touch()
         updated = self.function()
         if not updated:

@@ -6,10 +6,9 @@ import subprocess
 from typing import Iterable
 
 from .common import Rule
-from .girddir import get_girddir_tmp, init_girddir
 from .girdfile import import_girdfile
+from .girdpath import get_gird_path_run, get_gird_path_tmp, init_gird_path
 from .makefile import write_makefiles
-from .utils import convert_cli_target_for_make
 
 
 def parse_args() -> argparse.Namespace:
@@ -25,7 +24,7 @@ def parse_args() -> argparse.Namespace:
         help="Path to the file with rule definitions. Defaults to ./girdfile.py.",
     )
     parser.add_argument(
-        "--girddir",
+        "--girdpath",
         type=pathlib.Path,
         default=current_dir / ".gird",
         help="Path of the working directory for Gird. Defaults to ./.gird.",
@@ -53,17 +52,16 @@ def parse_args() -> argparse.Namespace:
 
 def run_target(
     target: str,
-    rules: Iterable[Rule],
     capture_output: bool = True,
 ):
-    makefile_dir = get_girddir_tmp()
-    target = convert_cli_target_for_make(target, rules)
+    makefile_dir = get_gird_path_tmp()
+    gird_path_run = get_gird_path_run()
     subprocess.run(
         [
             "make",
             target,
             "-C",
-            str(makefile_dir.resolve()),
+            str(gird_path_run.resolve()),
             "-f",
             str((makefile_dir / "Makefile1").resolve()),
         ],
@@ -85,7 +83,7 @@ def list_rules(rules: Iterable[Rule]):
 
 def main():
     args = parse_args()
-    init_girddir(args.girddir)
+    init_gird_path(args.girdpath, args.girdfile)
     rules = import_girdfile(args.girdfile)
     if args.list:
         list_rules(rules)
@@ -93,6 +91,5 @@ def main():
     if args.target:
         run_target(
             args.target,
-            rules,
             capture_output=not args.verbose,
         )

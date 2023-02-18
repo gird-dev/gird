@@ -23,7 +23,7 @@ from typing import Callable, Iterable, List, Optional, Tuple, Union
 
 from .common import Dependency, Phony, Rule, SubRecipe, Target
 from .dependency import DependencyFunction
-from .girddir import get_girddir_tmp
+from .girdpath import get_gird_path_run, get_gird_path_tmp
 from .utils import get_python_function_shell_command
 
 
@@ -38,7 +38,7 @@ class MakefileRule:
 
 def write_makefiles(rules: Iterable[Rule]):
     """Write Makefiles based on a GirdfileDefinition."""
-    makefile_dir = get_girddir_tmp()
+    makefile_dir = get_gird_path_tmp()
     path_makefile1 = makefile_dir / "Makefile1"
     path_makefile2 = makefile_dir / "Makefile2"
     (
@@ -116,11 +116,10 @@ def convert_dep_function_rule_makefile1(
     dep_function: DependencyFunction,
 ) -> MakefileRule:
     """Convert a DependencyFunction as a MakefileRule for Makefile1."""
-    makefile_dir = get_girddir_tmp()
     return MakefileRule(
         target=Phony(dep_function.name),
         deps=None,
-        recipe=[get_python_function_shell_command(dep_function.function, makefile_dir)],
+        recipe=[get_python_function_shell_command(dep_function.function)],
     )
 
 
@@ -129,7 +128,10 @@ def convert_rule_makefile1(rule: Rule) -> List[MakefileRule]:
     rule_deps = create_deps_rule_makefile1(rule)
 
     target = Phony(format_target(rule.target))
-    recipe = f"$(MAKE) --file Makefile2 {target}"
+    makefile2_path = get_path_relative_to_gird_path_run(
+        get_gird_path_tmp() / "Makefile2"
+    )
+    recipe = f"$(MAKE) --file {makefile2_path} {target}"
     rule_main = MakefileRule(
         target=target,
         deps=[rule_deps.target],
@@ -191,7 +193,7 @@ def format_target(target: Target) -> Union[str, Phony]:
     if isinstance(target, Phony):
         makefile_target = target
     elif isinstance(target, pathlib.Path):
-        makefile_target = format_path(target)
+        makefile_target = get_path_relative_to_gird_path_run(target)
     else:
         raise NotImplementedError(f"Unsupported target type '{type(target)}'.")
     return makefile_target
@@ -200,11 +202,12 @@ def format_target(target: Target) -> Union[str, Phony]:
 def format_dep_makefile2(dep: Dependency) -> str:
     """Format a Dependency for Makefile2."""
     if isinstance(dep, pathlib.Path):
-        makefile_dep = format_path(dep)
+        makefile_dep = get_path_relative_to_gird_path_run(dep)
     elif isinstance(dep, Rule):
         makefile_dep = format_target(dep.target)
     elif isinstance(dep, DependencyFunction):
-        makefile_dep = dep.name
+        dep_path = get_gird_path_tmp() / dep.name
+        makefile_dep = get_path_relative_to_gird_path_run(dep_path)
     else:
         raise TypeError(f"Unsupported dependency type '{type(dep)}'.")
     return makefile_dep
@@ -217,16 +220,13 @@ def format_recipe_makefile2(recipe: Iterable[SubRecipe]) -> List[str]:
         if isinstance(subrecipe, str):
             subrecipes.extend(subrecipe.split("\n"))
         elif isinstance(subrecipe, Callable):
-            makefile_dir = get_girddir_tmp()
-            subrecipes.append(
-                get_python_function_shell_command(subrecipe, makefile_dir)
-            )
+            subrecipes.append(get_python_function_shell_command(subrecipe))
         else:
             raise TypeError(f"Unsupported recipe type '{type(subrecipe)}'.")
     return subrecipes
 
 
-def format_path(path: pathlib.Path) -> str:
-    """Format/normalize a Path to be relative to makefile_dir."""
-    makefile_dir = get_girddir_tmp()
-    return os.path.relpath(path, makefile_dir)
+def get_path_relative_to_gird_path_run(path: pathlib.Path) -> str:
+    """Format/normalize a Path to be relative to gird_path_run."""
+    gird_path_run = get_gird_path_run()
+    return os.path.relpath(path, gird_path_run)

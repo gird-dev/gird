@@ -30,9 +30,11 @@ GIRDFILE_CONTEXT = GirdfileContext()
 
 
 def import_girdfile(girdfile_path: pathlib.Path) -> List[Rule]:
-    """Define rules by importing a 'girdfile.py'."""
+    """Define rules by importing a 'girdfile.py'. Set environment variable
+    ENV_GIRD_PATH_RUN.
+    """
     # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
-    module_name = "girdfile"
+    module_name = girdfile_path.stem
     error = ImportError(f"Could not import girdfile '{girdfile_path}'.")
     spec = importlib.util.spec_from_file_location(module_name, girdfile_path)
     if spec is None:
