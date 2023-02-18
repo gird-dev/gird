@@ -18,6 +18,7 @@ gird = "gird.gird:main"
 python = "^3.8"
 
 [tool.poetry.group.dev.dependencies]
+gird = "^1.2.0"
 pytest = "^7.2.0"
 isort = "^5.11.4"
 black = "^22.12.0"
