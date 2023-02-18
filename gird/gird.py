@@ -57,18 +57,32 @@ def run_target(
 ):
     makefile_dir = get_gird_path_tmp()
     gird_path_run = get_gird_path_run()
-    subprocess.run(
-        [
-            "make",
-            target,
-            "-C",
-            str(gird_path_run.resolve()),
-            "-f",
-            str((makefile_dir / "Makefile1").resolve()),
-        ],
-        check=True,
+
+    args = [
+        "make",
+        target,
+        "-C",
+        str(gird_path_run.resolve()),
+        "-f",
+        str((makefile_dir / "Makefile1").resolve()),
+    ]
+
+    process = subprocess.run(
+        args,
+        text=True,
         capture_output=capture_output,
     )
+
+    if process.returncode != 0:
+        command = " ".join(args)
+        message = f"Command `{command}` returned exit code {process.returncode}."
+        if process.stderr or process.stdout:
+            message += "\n"
+        if process.stderr:
+            message += f"Stderr:\n{process.stderr}"
+        if process.stdout:
+            message += f"Stdout:\n{process.stdout}"
+        raise RuntimeError(message)
 
 
 def list_rules(rules: Iterable[Rule]):

@@ -50,11 +50,11 @@ def run():
         )
 
         if raise_on_error and process.returncode != 0:
+            command = " ".join(args)
             raise RuntimeError(
-                f"The process of subprocess.run with args `{args}` returned exit "
-                f"code {process.returncode}.\n\n"
-                f"Stdout:\n{process.stdout}\n\n"
-                f"Stderr:\n{process.stderr}\n"
+                f"Command `{command}` returned exit code {process.returncode}.\n"
+                f"Stderr:\n{process.stderr}"
+                f"Stdout:\n{process.stdout}"
             )
 
         return process
