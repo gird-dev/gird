@@ -44,10 +44,9 @@ def test_cli(tmp_path, run):
     assert len(list(gird_path.iterdir())) > 0
 
     # Check effects of --list.
-    targets_listing = """Targets:
-    target
-        Create
-        target.
+    targets_listing = """target
+    Create
+    target.
 """
     assert stdout.startswith(targets_listing)
 
