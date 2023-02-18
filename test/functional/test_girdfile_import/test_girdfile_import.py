@@ -4,7 +4,7 @@ import shutil
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test(tmp_path, process_girdfile):
+def test_girdfile_import(tmp_path, process_girdfile):
     """Test that girdfile import works, and imports from the girdfile work."""
     path_target = tmp_path / "target"
 

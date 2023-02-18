@@ -3,7 +3,7 @@ import re
 import shutil
 
 
-def test(tmp_path, run):
+def test_cli(tmp_path, run):
     """Test CLI arguments.
     - girdfile
     - girdpath

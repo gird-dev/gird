@@ -3,7 +3,7 @@ import pathlib
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test_false(tmp_path, process_girdfile):
+def test_dep_compound_false(tmp_path, process_girdfile):
     """Test that a recipe is run if any of the dependencies of its rule are
     updated.
     """
@@ -76,7 +76,7 @@ def test_false(tmp_path, process_girdfile):
     assert mtime_fifth == mtime_sixth
 
 
-def test_true(tmp_path, process_girdfile):
+def test_dep_compound_true(tmp_path, process_girdfile):
     """Test that a recipe is run if a dependency function returns True and
     the target exists, regardless of other dependencies.
     """

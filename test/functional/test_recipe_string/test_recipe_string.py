@@ -3,7 +3,7 @@ import pathlib
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test(tmp_path, process_girdfile):
+def test_recipe_string(tmp_path, process_girdfile):
     """Test that a function recipe is properly run."""
     path_target = tmp_path / "target"
 

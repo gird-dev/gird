@@ -3,7 +3,7 @@ import pathlib
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test_false(tmp_path, process_girdfile):
+def test_dep_function_false(tmp_path, process_girdfile):
     """Test that a recipe is not run if a dependency function returns False and
     the target exists.
     """
@@ -28,7 +28,7 @@ def test_false(tmp_path, process_girdfile):
     assert mtime_first == mtime_second
 
 
-def test_true(tmp_path, process_girdfile):
+def test_dep_function_true(tmp_path, process_girdfile):
     """Test that a recipe is run if a dependency function returns True and
     the target exists.
     """
