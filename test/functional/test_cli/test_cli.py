@@ -1,6 +1,6 @@
 import pathlib
+import re
 import shutil
-import subprocess
 
 
 def test(tmp_path, run):
@@ -53,4 +53,4 @@ def test(tmp_path, run):
 
     # Check effects of --verbose.
     verbose_output = stdout[len(targets_listing) :]
-    assert verbose_output.startswith("make: Entering directory")
+    assert re.match(r"make(\[\d+\])?: Entering directory", verbose_output)
