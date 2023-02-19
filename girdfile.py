@@ -12,8 +12,8 @@ rule_pytest = rule(
     help="Run pytest.",
 )
 
-rule_assert_formatting = rule(
-    target=Phony("assert_formatting"),
+rule_check_formatting = rule(
+    target=Phony("check_formatting"),
     recipe=[
         "black --check gird scripts girdfile.py",
         "isort --check gird scripts girdfile.py",
@@ -21,16 +21,16 @@ rule_assert_formatting = rule(
     help="Check formatting with Black & isort.",
 )
 
-rule_assert_readme_updated = rule(
-    target=Phony("assert_readme_updated"),
+rule_check_readme_updated = rule(
+    target=Phony("check_readme_updated"),
     recipe=assert_readme_updated,
     help="Check that README.md is updated based on README_template.md.",
 )
 
 rules_test = [
     rule_pytest,
-    rule_assert_formatting,
-    rule_assert_readme_updated,
+    rule_check_formatting,
+    rule_check_readme_updated,
 ]
 
 rule(
