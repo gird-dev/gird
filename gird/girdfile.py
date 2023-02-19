@@ -41,6 +41,8 @@ def import_girdfile(girdfile_path: pathlib.Path) -> List[Rule]:
         raise error
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
+    # Append the girdfile's directory to PYTHONPATH to enable imports in the file.
+    sys.path.append(str(pathlib.Path(girdfile_path.parent).resolve()))
     with GIRDFILE_CONTEXT:
         try:
             spec.loader.exec_module(module)
