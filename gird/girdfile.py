@@ -9,7 +9,7 @@ from .common import Rule
 
 
 class GirdfileContext:
-    """Context manager to control access to GirdfileDefinition during the import
+    """Context manager to control access to a Rule register during the import
     of a girdfile.py.
     """
 
@@ -30,8 +30,8 @@ GIRDFILE_CONTEXT = GirdfileContext()
 
 
 def import_girdfile(girdfile_path: pathlib.Path) -> List[Rule]:
-    """Define rules by importing a 'girdfile.py'. Set environment variable
-    ENV_GIRD_PATH_RUN.
+    """Define rules by importing a 'girdfile.py'. Add the file's directory to
+    sys.path.
     """
     # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
     module_name = girdfile_path.stem
