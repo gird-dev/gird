@@ -40,9 +40,12 @@ rule(
 
 rule(
     target=Path("README.md"),
-    deps=Path("scripts/README_template.md"),
+    deps=[
+        Path("scripts/README_template.md"),
+        Path("scripts/render_readme.py"),
+    ],
     recipe=render_readme,
-    help="Render README.md based on scripts/README_template.md.",
+    help="Render README.md based on README_template.md.",
 )
 
 rule(
