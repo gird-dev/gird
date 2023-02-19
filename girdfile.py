@@ -2,7 +2,7 @@ import pathlib
 
 import tomli
 
-import gird
+from gird import Phony, rule
 
 
 def get_wheel_path() -> pathlib.Path:
@@ -15,28 +15,28 @@ def get_wheel_path() -> pathlib.Path:
 
 WHEEL_PATH = get_wheel_path()
 
-rule_pytest = gird.rule(
-    target=gird.Phony("pytest"),
+rule_pytest = rule(
+    target=Phony("pytest"),
     recipe="pytest",
 )
 
-gird.rule(
-    target=gird.Phony("tests"),
+rule(
+    target=Phony("tests"),
     deps=[
         rule_pytest,
     ],
     help="Run tests & other checks.",
 )
 
-gird.rule(
+rule(
     target=WHEEL_PATH,
     recipe="poetry build --format wheel",
     help="Build distribution packages for the current version.",
 )
 
-gird.rule(
-    target=gird.Phony("publish"),
+rule(
+    target=Phony("publish"),
     deps=WHEEL_PATH,
-    recipe=f"twine upload {WHEEL_PATH}",
+    recipe=f"twine upload --repository gird {WHEEL_PATH}",
     help="Publish packages of the current version to PyPI.",
 )
