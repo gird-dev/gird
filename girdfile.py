@@ -27,16 +27,16 @@ rule_assert_readme_updated = rule(
     help="Check that README.md is updated based on README_template.md.",
 )
 
-deps_tests = [
+rules_test = [
     rule_pytest,
     rule_assert_formatting,
     rule_assert_readme_updated,
 ]
 
 rule(
-    target=Phony("tests"),
-    deps=deps_tests,
-    help="\n".join(f"- {rule.help}" for rule in deps_tests),
+    target=Phony("test"),
+    deps=rules_test,
+    help="\n".join(f"- {rule.help}" for rule in rules_test),
 )
 
 rule(
