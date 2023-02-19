@@ -1,17 +1,5 @@
-import pathlib
-
-import tomli
-
 from gird import Phony, rule
-
-
-def get_wheel_path() -> pathlib.Path:
-    with open(pathlib.Path("pyproject.toml"), "rb") as f:
-        toml = tomli.load(f)
-    name = toml["tool"]["poetry"]["name"].replace(".", "_")
-    version = toml["tool"]["poetry"]["version"]
-    return pathlib.Path("dist") / f"{name}-{version}-py3-none-any.whl"
-
+from scripts import get_wheel_path
 
 WHEEL_PATH = get_wheel_path()
 
