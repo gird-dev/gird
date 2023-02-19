@@ -1,3 +1,4 @@
+from itertools import chain
 from pathlib import Path
 
 from gird import Phony, rule
@@ -40,10 +41,12 @@ rule(
 
 rule(
     target=Path("README.md"),
-    deps=[
-        Path("scripts/README_template.md"),
-        Path("scripts/render_readme.py"),
-    ],
+    deps=list(
+        chain(
+            *(Path(path).iterdir() for path in ("scripts", "gird")),
+            [Path("girdfile.py")],
+        ),
+    ),
     recipe=render_readme,
     help="Render README.md based on README_template.md.",
 )

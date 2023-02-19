@@ -58,9 +58,19 @@ definition, the rule can, for example,
 A rule is invoked by `gird <target_name>`. To list all targets, run
 `gird --list`.
 
-### Examples
+### Example girdfile.py
 
-{{ examples }}
+This is the girdfile.py of the project itself.
+
+{{ example_girdfile }}
+
+Respective output from `gird --list`:
+
+{{ example_gird_list }}
+
+### Example rules
+
+{{ example_rules }}
 
 ## Implementation of Gird
 

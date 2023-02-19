@@ -1,18 +1,30 @@
+import subprocess
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
 from gird import rule
 
+ROOT_PATH = Path(__file__).parents[1]
+GIRDFILE = ROOT_PATH / "girdfile.py"
 README_TEMPLATE = Path(__file__).parent / "README_template.md"
-README = Path(__file__).parents[1] / "README.md"
+README = ROOT_PATH / "README.md"
 
 JINJA_ENV = Environment(
     loader=FileSystemLoader(README_TEMPLATE.parent), keep_trailing_newline=True
 )
 
 
-def get_readme_examples() -> str:
+def get_readme_example_girdfile() -> str:
+    return f"```python\n{GIRDFILE.read_text().strip()}\n```"
+
+
+def get_readme_example_gird_list() -> str:
+    process = subprocess.run(["gird", "--list"], text=True, stdout=subprocess.PIPE)
+    return f"```\n{process.stdout}```"
+
+
+def get_readme_example_rules() -> str:
     """Format the example section for README.md based on the docstring of the
     gird.rule function.
     """
@@ -36,8 +48,14 @@ def get_readme_examples() -> str:
 
 def get_readme_contents() -> str:
     template = JINJA_ENV.get_template(README_TEMPLATE.name)
-    examples = get_readme_examples()
-    readme_contents = template.render(examples=examples)
+    example_girdfile = get_readme_example_girdfile()
+    example_gird_list = get_readme_example_gird_list()
+    example_rules = get_readme_example_rules()
+    readme_contents = template.render(
+        example_girdfile=example_girdfile,
+        example_gird_list=example_gird_list,
+        example_rules=example_rules,
+    )
     return readme_contents
 
 

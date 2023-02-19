@@ -58,7 +58,100 @@ definition, the rule can, for example,
 A rule is invoked by `gird <target_name>`. To list all targets, run
 `gird --list`.
 
-### Examples
+### Example girdfile.py
+
+This is the girdfile.py of the project itself.
+
+```python
+from itertools import chain
+from pathlib import Path
+
+from gird import Phony, rule
+from scripts import assert_readme_updated, get_wheel_path, render_readme
+
+WHEEL_PATH = get_wheel_path()
+
+rule_pytest = rule(
+    target=Phony("pytest"),
+    recipe="pytest",
+    help="Run pytest.",
+)
+
+rule_assert_formatting = rule(
+    target=Phony("assert_formatting"),
+    recipe=[
+        "black --check gird scripts girdfile.py",
+        "isort --check gird scripts girdfile.py",
+    ],
+    help="Check formatting with Black & isort.",
+)
+
+rule_assert_readme_updated = rule(
+    target=Phony("assert_readme_updated"),
+    recipe=assert_readme_updated,
+    help="Check that README.md is updated based on README_template.md.",
+)
+
+deps_tests = [
+    rule_pytest,
+    rule_assert_formatting,
+    rule_assert_readme_updated,
+]
+
+rule(
+    target=Phony("tests"),
+    deps=deps_tests,
+    help="\n".join(f"- {rule.help}" for rule in deps_tests),
+)
+
+rule(
+    target=Path("README.md"),
+    deps=list(
+        chain(
+            *(Path(path).iterdir() for path in ("scripts", "gird")),
+            [Path("girdfile.py")],
+        ),
+    ),
+    recipe=render_readme,
+    help="Render README.md based on README_template.md.",
+)
+
+rule(
+    target=WHEEL_PATH,
+    recipe="poetry build --format wheel",
+    help="Build distribution packages for the current version.",
+)
+
+rule(
+    target=Phony("publish"),
+    deps=WHEEL_PATH,
+    recipe=f"twine upload --repository gird {WHEEL_PATH}",
+    help="Publish packages of the current version to PyPI.",
+)
+```
+
+Respective output from `gird --list`:
+
+```
+pytest
+    Run pytest.
+assert_formatting
+    Check formatting with Black & isort.
+assert_readme_updated
+    Check that README.md is updated based on README_template.md.
+tests
+    - Run pytest.
+    - Check formatting with Black & isort.
+    - Check that README.md is updated based on README_template.md.
+README.md
+    Render README.md based on README_template.md.
+dist/gird-1.2.3-py3-none-any.whl
+    Build distribution packages for the current version.
+publish
+    Publish packages of the current version to PyPI.
+```
+
+### Example rules
 
 A rule with files as its target & dependency. When the rule is invoked, the
 recipe is executed only if the dependency file has been or will be updated,
