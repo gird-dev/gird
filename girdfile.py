@@ -10,10 +10,19 @@ rule_pytest = rule(
     recipe="pytest",
 )
 
+rule_assert_formatting = rule(
+    target=Phony("assert_formatting"),
+    recipe=[
+        "black --check gird scripts girdfile.py",
+        "isort --check gird scripts girdfile.py",
+    ],
+)
+
 rule(
     target=Phony("tests"),
     deps=[
         rule_pytest,
+        rule_assert_formatting,
     ],
     help="Run tests & other checks.",
 )
