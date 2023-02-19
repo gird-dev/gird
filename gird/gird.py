@@ -3,6 +3,7 @@
 import argparse
 import pathlib
 import subprocess
+import sys
 from typing import Iterable
 
 from .common import Rule
@@ -51,9 +52,8 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def run_target(
-    target: str,
-):
+def run_target(target: str):
+    """Run a target. Call sys.exit(returncode) in case of non-zero return code."""
     makefile_dir = get_gird_path_tmp()
     gird_path_run = get_gird_path_run()
 
@@ -66,21 +66,21 @@ def run_target(
         str((makefile_dir / "Makefile1").resolve()),
     ]
 
+    print(f"gird: Executing target '{target}'.")
+
     process = subprocess.run(
         args,
         text=True,
     )
 
     if process.returncode != 0:
-        command = " ".join(args)
-        message = f"Command `{command}` returned exit code {process.returncode}."
-        if process.stderr or process.stdout:
-            message += "\n"
-        if process.stderr:
-            message += f"Stderr:\n{process.stderr}"
-        if process.stdout:
-            message += f"Stdout:\n{process.stdout}"
-        raise RuntimeError(message)
+        print(
+            f"gird: Execution of target '{target}' returned with error. Possible "
+            f"output & error messages should be visible above."
+        )
+        sys.exit(process.returncode)
+    else:
+        print(f"gird: Target '{target}' was successfully executed.")
 
 
 def list_rules(rules: Iterable[Rule]):
