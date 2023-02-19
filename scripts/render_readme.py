@@ -34,12 +34,25 @@ def get_readme_examples() -> str:
     return examples_formatted
 
 
-def render_readme():
+def get_readme_contents() -> str:
     template = JINJA_ENV.get_template(README_TEMPLATE.name)
-
     examples = get_readme_examples()
     readme_contents = template.render(examples=examples)
+    return readme_contents
 
+
+def assert_readme_updated():
+    """Raise an AssertionError if the contents of the README file don't equal
+    the text returned by get_readme_contents.
+    """
+    readme_contents = get_readme_contents()
+    if README.read_text() != readme_contents:
+        raise AssertionError("README.md is not updated.")
+
+
+def render_readme():
+    """Write the text returned by get_readme_contents to the README file."""
+    readme_contents = get_readme_contents()
     with open(README, "w") as readme_file:
         readme_file.write(readme_contents)
 
