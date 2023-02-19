@@ -1,5 +1,7 @@
+from pathlib import Path
+
 from gird import Phony, rule
-from scripts import get_wheel_path
+from scripts import get_wheel_path, render_readme
 
 WHEEL_PATH = get_wheel_path()
 
@@ -14,6 +16,13 @@ rule(
         rule_pytest,
     ],
     help="Run tests & other checks.",
+)
+
+rule(
+    target=Path("README.md"),
+    deps=Path("scripts/README_template.md"),
+    recipe=render_readme,
+    help="Render README.md based on scripts/README.md",
 )
 
 rule(

@@ -34,7 +34,7 @@ def get_readme_examples() -> str:
     return examples_formatted
 
 
-def generate_readme():
+def render_readme():
     template = JINJA_ENV.get_template(README_TEMPLATE.name)
 
     examples = get_readme_examples()
@@ -45,7 +45,7 @@ def generate_readme():
 
 
 def main():
-    generate_readme()
+    render_readme()
 
 
 if __name__ == "__main__":
