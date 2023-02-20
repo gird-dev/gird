@@ -3,33 +3,22 @@
 
 # Gird
 
-Gird is a Make-like build tool & task runner for Python.
-
-Gird can be used to manage any project where some tasks need to be executed
-automatically when some dependencies are updated. In Make, this usually means
-updating files based on changes in other files. Compared to Make, Gird provides
-
-- a simple Python interface,
-- good Python integrability, and
-- additional dependency management features.
-
-### Comparison with other tools
-
-- [Make][make] has many features that could be replaced by a comprehensive
-  Python integration/API (Gird). Dedicated single-purpose rule definition
-  syntax.
-- [doit][doit]'s API is unclear/absent. The database can more or less be a black
-  box.
-- [Invoke][invoke] doesn't support file-based update chaining.
-- [Snakemake][snakemake] & [CMake][cmake] are heavyweight & complicated with too 
-  many responsibilities.
-- See https://wiki.python.org/moin/ConfigurationAndBuildTools
+Gird is a lightweight & general-purpose [Make][make]-like build tool & task
+runner for Python.
 
 [make]: https://www.gnu.org/software/make/
-[doit]: https://pydoit.org/
-[invoke]: https://www.pyinvoke.org/
-[snakemake]: https://snakemake.readthedocs.io/
-[cmake]: https://cmake.org/
+
+Gird can be used to manage any project where some tasks need to be executed
+automatically when some dependencies are updated. The goal of Gird is to combine
+the following features.
+
+- A simple, expressive, and intuitive rule definition and execution scheme very
+  close to Make.
+- Configuration in Python, allowing straightforward and familiar usage, without
+  the need for a dedicated rule definition syntax.
+- Ability to take advantage of Python's flexibility and possibility to easily
+  integrate with Python libraries and tools.
+- Emphasis on API simplicity & ease of use.
 
 ## Installation
 
@@ -43,12 +32,10 @@ Gird is built & tested for Python versions 3.8 & above.
 Gird requires [Make][make] to be available on the system. Most versions of Make
 will do, as long as they support the `.PHONY` & `.ONESHELL` special targets.
 
-[make]: https://www.gnu.org/software/make/
-
 ## Usage
 
-Define "rules" in *girdfile.py*. Depending on the composition of a rule
-definition, the rule can, for example,
+Define "rules" in *girdfile.py*. Depending on the composition of the rule
+definition, a rule can, for example,
 
 - define a recipe to run a task, e.g., to update a target file,
 - define prerequisites for the target, such as dependency files or other rules,
@@ -145,7 +132,7 @@ test
     - Check that README.md is updated based on README_template.md.
 README.md
     Render README.md based on README_template.md.
-dist/gird-1.2.4-py3-none-any.whl
+dist/gird-1.2.5-py3-none-any.whl
     Build distribution packages for the current version.
 publish
     Publish packages of the current version to PyPI.
