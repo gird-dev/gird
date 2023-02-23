@@ -49,7 +49,7 @@ def rule(
     >>> rule_build = gird.rule(
     >>>     target=wheel,
     >>>     deps=pathlib.Path("module.py"),
-    >>>     recipe=f"python -m build --wheel",
+    >>>     recipe="python -m build --wheel",
     >>> )
 
     A (phony) rule with no target file. Phony rules are always executed when

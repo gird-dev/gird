@@ -3,7 +3,7 @@ import pathlib
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test_makefile(tmp_path, process_girdfile):
+def test_ninja(tmp_path, process_girdfile):
     process_girdfile(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,

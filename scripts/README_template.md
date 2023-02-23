@@ -13,7 +13,7 @@ automatically when some dependencies are updated. The goal of Gird is to combine
 the following features.
 
 - A simple, expressive, and intuitive rule definition and execution scheme very
-  close to Make.
+  close to that of Make.
 - Configuration in Python, allowing straightforward and familiar usage, without
   the need for a dedicated rule definition syntax.
 - Ability to take advantage of Python's flexibility and possibility to easily
@@ -25,12 +25,7 @@ the following features.
 Install Gird from PyPI with `pip install gird`, or from sources with
 `pip install .`.
 
-### Requirements
-
 Gird is built & tested for Python versions 3.8 & above.
-
-Gird requires [Make][make] to be available on the system. Most versions of Make
-will do, as long as they support the `.PHONY` & `.ONESHELL` special targets.
 
 ## Usage
 
@@ -40,7 +35,7 @@ definition, a rule can, for example,
 - define a recipe to run a task, e.g., to update a target file,
 - define prerequisites for the target, such as dependency files or other rules,
   and
-- use Python functions for more complex target & recipe functionality.
+- use Python functions for more complex dependency & recipe functionality.
 
 A rule is invoked by `gird <target_name>`. To list all targets, run
 `gird --list`.
@@ -58,9 +53,3 @@ Respective output from `gird --list`:
 ### Example rules
 
 {{ example_rules }}
-
-## Implementation of Gird
-
-Internally, Gird generates Makefiles & uses Make to run tasks, but interacting
-with Make in any way isn't obligatory when using Gird. In the future, Make as a
-dependency of Gird might be replaced altogether.

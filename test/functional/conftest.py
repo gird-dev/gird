@@ -50,7 +50,7 @@ def run():
         )
 
         if raise_on_error and process.returncode != 0:
-            command = " ".join(args)
+            command = " ".join(*args)
             raise RuntimeError(
                 f"Command `{command}` returned exit code {process.returncode}.\n"
                 f"Stderr:\n{process.stderr}"
@@ -96,9 +96,9 @@ def process_girdfile(run):
             ["gird"],
         )
 
-        for makefile_name in ("Makefile1", "Makefile2"):
-            path_makefile_target = test_dir / makefile_name
-            path_makefile_result = gird_path_tmp / makefile_name
+        for build_file_name in ("build1.ninja", "build2.ninja"):
+            path_makefile_target = test_dir / build_file_name
+            path_makefile_result = gird_path_tmp / build_file_name
             if path_makefile_target.exists():
                 assert (
                     path_makefile_result.read_text() == path_makefile_target.read_text()

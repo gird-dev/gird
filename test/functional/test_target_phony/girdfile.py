@@ -21,7 +21,7 @@ gird.rule(
 
 
 rule = gird.rule(
-    target=gird.Phony("target"),
+    target=gird.Phony("phony_target"),
     deps=path_dep,
     recipe=create_target,
 )

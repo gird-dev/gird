@@ -1,5 +1,4 @@
 import pathlib
-import re
 import shutil
 
 
@@ -23,9 +22,9 @@ def test_cli(tmp_path, run):
     args = [
         "gird",
         "--girdfile",
-        path_girdfile.resolve(),
+        str(path_girdfile.resolve()),
         "--girdpath",
-        gird_path.resolve(),
+        str(gird_path.resolve()),
         "--list",
         "--verbose",
         "target",
@@ -49,7 +48,3 @@ def test_cli(tmp_path, run):
     target.
 """
     assert stdout.startswith(targets_listing)
-
-    # Check effects of --verbose.
-    verbose_output = stdout[len(targets_listing) :]
-    assert re.match(r"make(\[\d+\])?: Entering directory", verbose_output)

@@ -13,7 +13,7 @@ automatically when some dependencies are updated. The goal of Gird is to combine
 the following features.
 
 - A simple, expressive, and intuitive rule definition and execution scheme very
-  close to Make.
+  close to that of Make.
 - Configuration in Python, allowing straightforward and familiar usage, without
   the need for a dedicated rule definition syntax.
 - Ability to take advantage of Python's flexibility and possibility to easily
@@ -25,12 +25,7 @@ the following features.
 Install Gird from PyPI with `pip install gird`, or from sources with
 `pip install .`.
 
-### Requirements
-
 Gird is built & tested for Python versions 3.8 & above.
-
-Gird requires [Make][make] to be available on the system. Most versions of Make
-will do, as long as they support the `.PHONY` & `.ONESHELL` special targets.
 
 ## Usage
 
@@ -40,7 +35,7 @@ definition, a rule can, for example,
 - define a recipe to run a task, e.g., to update a target file,
 - define prerequisites for the target, such as dependency files or other rules,
   and
-- use Python functions for more complex target & recipe functionality.
+- use Python functions for more complex dependency & recipe functionality.
 
 A rule is invoked by `gird <target_name>`. To list all targets, run
 `gird --list`.
@@ -67,8 +62,8 @@ rule_pytest = rule(
 rule_check_formatting = rule(
     target=Phony("check_formatting"),
     recipe=[
-        "black --check gird scripts girdfile.py",
-        "isort --check gird scripts girdfile.py",
+        f"black --check gird scripts girdfile.py",
+        f"isort --check gird scripts girdfile.py",
     ],
     help="Check formatting with Black & isort.",
 )
@@ -93,11 +88,9 @@ rule(
 
 rule(
     target=Path("README.md"),
-    deps=list(
-        chain(
-            *(Path(path).iterdir() for path in ("scripts", "gird")),
-            [Path("girdfile.py")],
-        ),
+    deps=chain(
+        *(Path(path).iterdir() for path in ("scripts", "gird")),
+        [Path("girdfile.py")],
     ),
     recipe=render_readme,
     help="Render README.md based on README_template.md.",
@@ -132,7 +125,7 @@ test
     - Check that README.md is updated based on README_template.md.
 README.md
     Render README.md based on README_template.md.
-dist/gird-1.2.5-py3-none-any.whl
+dist/gird-1.3.0-py3-none-any.whl
     Build distribution packages for the current version.
 publish
     Publish packages of the current version to PyPI.
@@ -152,7 +145,7 @@ wheel = pathlib.Path("package.whl")
 rule_build = gird.rule(
     target=wheel,
     deps=pathlib.Path("module.py"),
-    recipe=f"python -m build --wheel",
+    recipe="python -m build --wheel",
 )
 ```
 
@@ -252,9 +245,3 @@ rules = [
 ]
 
 ```
-
-## Implementation of Gird
-
-Internally, Gird generates Makefiles & uses Make to run tasks, but interacting
-with Make in any way isn't obligatory when using Gird. In the future, Make as a
-dependency of Gird might be replaced altogether.

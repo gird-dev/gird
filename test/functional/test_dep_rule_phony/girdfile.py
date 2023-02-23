@@ -15,7 +15,7 @@ def create_target():
 
 
 rule_dep = gird.rule(
-    target=gird.Phony("dep"),
+    target=gird.Phony("phony_dep"),
     recipe=create_dep,
 )
 

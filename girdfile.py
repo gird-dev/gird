@@ -15,8 +15,8 @@ rule_pytest = rule(
 rule_check_formatting = rule(
     target=Phony("check_formatting"),
     recipe=[
-        "black --check gird scripts girdfile.py",
-        "isort --check gird scripts girdfile.py",
+        f"black --check gird scripts girdfile.py",
+        f"isort --check gird scripts girdfile.py",
     ],
     help="Check formatting with Black & isort.",
 )
@@ -41,11 +41,9 @@ rule(
 
 rule(
     target=Path("README.md"),
-    deps=list(
-        chain(
-            *(Path(path).iterdir() for path in ("scripts", "gird")),
-            [Path("girdfile.py")],
-        ),
+    deps=chain(
+        *(Path(path).iterdir() for path in ("scripts", "gird")),
+        [Path("girdfile.py")],
     ),
     recipe=render_readme,
     help="Render README.md based on README_template.md.",
