@@ -12,7 +12,7 @@ def test(tmp_path, process_girdfile):
     process_girdfile(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        target="target",
+        target="phony_target",
     )
 
     mtime_first = path_result.stat().st_mtime_ns
@@ -20,7 +20,7 @@ def test(tmp_path, process_girdfile):
     process_girdfile(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        target="target",
+        target="phony_target",
     )
 
     mtime_second = path_result.stat().st_mtime_ns

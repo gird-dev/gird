@@ -25,12 +25,7 @@ the following features.
 Install Gird from PyPI with `pip install gird`, or from sources with
 `pip install .`.
 
-### Requirements
-
 Gird is built & tested for Python versions 3.8 & above.
-
-Gird requires [Make][make] to be available on the system. Most versions of Make
-will do, as long as they support the `.PHONY` & `.ONESHELL` special targets.
 
 ## Usage
 
@@ -67,8 +62,8 @@ rule_pytest = rule(
 rule_check_formatting = rule(
     target=Phony("check_formatting"),
     recipe=[
-        "black --check gird scripts test girdfile.py",
-        "isort --check gird scripts test girdfile.py",
+        f"black --check gird scripts test girdfile.py",
+        f"isort --check gird scripts test girdfile.py",
     ],
     help="Check formatting with Black & isort.",
 )
@@ -250,9 +245,3 @@ rules = [
 ]
 
 ```
-
-## Implementation of Gird
-
-Internally, Gird generates Makefiles & uses Make to run tasks, but interacting
-with Make in any way isn't obligatory when using Gird. In the future, Make as a
-dependency of Gird might be replaced altogether.

@@ -9,7 +9,7 @@ from typing import Iterable
 from .common import Rule
 from .girdfile import import_girdfile
 from .girdpath import get_gird_path_run, get_gird_path_tmp, init_gird_path
-from .makefile import write_makefiles
+from .ninjaconvert import write_buildfiles
 
 
 def parse_args() -> argparse.Namespace:
@@ -63,12 +63,12 @@ def run_target(target: str):
     gird_path_run = get_gird_path_run()
 
     args = [
-        "make",
+        "ninja",
         target,
         "-C",
         str(gird_path_run.resolve()),
         "-f",
-        str((gird_path_tmp / "Makefile1").resolve()),
+        str((gird_path_tmp / "build1.ninja").resolve()),
     ]
 
     print_message(f"Executing target '{target}'.")
@@ -104,6 +104,6 @@ def main():
     rules = import_girdfile(args.girdfile)
     if args.list:
         list_rules(rules)
-    write_makefiles(rules)
+    write_buildfiles(rules)
     if args.target:
         run_target(args.target)

@@ -1,0 +1,53 @@
+builddir = .gird/tmp/builddir1
+
+rule rule_1
+    command = python -c 'from girdfile import function_dep; function_dep()'
+build .gird/tmp/function_dep: rule_1
+
+rule rule_2
+    command = ninja -f .gird/tmp/build2.ninja file0
+build file0: rule_2 file0__deps
+
+build file0__deps: phony
+
+rule rule_3
+    command = ninja -f .gird/tmp/build2.ninja test
+build test: rule_3 test__deps
+
+build test__deps: phony
+
+rule rule_4
+    command = ninja -f .gird/tmp/build2.ninja package.whl
+build package.whl: rule_4 package.whl__deps
+
+build package.whl__deps: phony
+
+rule rule_5
+    command = ninja -f .gird/tmp/build2.ninja all
+build all: rule_5 all__deps
+
+build all__deps: phony test__deps package.whl__deps
+
+rule rule_6
+    command = ninja -f .gird/tmp/build2.ninja file1
+build file1: rule_6 file1__deps
+
+build file1__deps: phony .gird/tmp/function_dep
+
+rule rule_7
+    command = ninja -f .gird/tmp/build2.ninja file2
+build file2: rule_7 file2__deps
+
+build file2__deps: phony .gird/tmp/function_dep
+
+rule rule_8
+    command = ninja -f .gird/tmp/build2.ninja file3
+build file3: rule_8 file3__deps
+
+build file3__deps: phony file1__deps file2__deps
+
+rule rule_9
+    command = ninja -f .gird/tmp/build2.ninja file4
+build file4: rule_9 file4__deps
+
+build file4__deps: phony file3__deps

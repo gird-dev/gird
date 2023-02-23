@@ -1,0 +1,31 @@
+builddir = .gird/tmp/builddir2
+
+rule rule_1
+    command = echo 'line1\n' >> file0 && echo 'line2\n' >> file0
+build file0: rule_1
+
+rule rule_2
+    command = echo 'Test succeeded.'
+build test: rule_2
+
+rule rule_3
+    command = buildtool --format wheel
+build package.whl: rule_3 source.py
+
+build all: phony test package.whl
+
+rule rule_4
+    command = echo 'line1' > file1
+build file1: rule_4 .gird/tmp/function_dep
+
+rule rule_5
+    command = python -c 'from girdfile import create_target2; create_target2()'
+build file2: rule_5 .gird/tmp/function_dep
+
+rule rule_6
+    command = python -c 'from girdfile import create_target3; create_target3()'
+build file3: rule_6 file1 file2
+
+rule rule_7
+    command = touch file4
+build file4: rule_7 file3
