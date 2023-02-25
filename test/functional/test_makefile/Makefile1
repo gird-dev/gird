@@ -1,7 +1,6 @@
 .ONESHELL:
 
-.PHONY: function_dep
-function_dep:
+.gird/tmp/function_dep:
 	python -c 'from girdfile import function_dep; function_dep()'
 
 .PHONY: file0
@@ -37,14 +36,14 @@ file1: file1__deps
 	$(MAKE) --file .gird/tmp/Makefile2 file1
 
 .PHONY: file1__deps
-file1__deps: function_dep
+file1__deps: .gird/tmp/function_dep
 
 .PHONY: file2
 file2: file2__deps
 	$(MAKE) --file .gird/tmp/Makefile2 file2
 
 .PHONY: file2__deps
-file2__deps: function_dep
+file2__deps: .gird/tmp/function_dep
 
 .PHONY: file3
 file3: file3__deps

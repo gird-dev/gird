@@ -26,7 +26,7 @@ class DependencyFunction:
 
         This function should be called at most once when any rule is executed.
         """
-        tag_path = get_gird_path_tmp() / self.name
+        tag_path = self.tag_path
         tag_path.touch()
         updated = self.function()
         if not updated:
@@ -39,6 +39,10 @@ class DependencyFunction:
     @property
     def name(self):
         return self.function.__name__
+
+    @property
+    def tag_path(self):
+        return get_gird_path_tmp() / self.name
 
 
 # "Decorative" alias
