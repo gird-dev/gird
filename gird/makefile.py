@@ -145,7 +145,7 @@ def create_deps_rule_makefile1(rule: Rule) -> MakefileRule:
     """Create a MakefileRule for dependency propagation in Makefile1."""
 
     def format_target_for_deps_rule(target: Target) -> Phony:
-        return Phony(format_target(target) + "__deps")
+        return Phony(str(format_target(target)) + "__deps")
 
     target = format_target_for_deps_rule(rule.target)
 

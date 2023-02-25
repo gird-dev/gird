@@ -10,11 +10,14 @@ Dependency = Union[pathlib.Path, "Rule", "gird.dependency.DependencyFunction"]
 SubRecipe = Union[str, Callable[[Any], Any]]
 
 
-class Phony(str):
-    def __init__(self, value):
-        if not value:
+class Phony:
+    def __init__(self, name):
+        if not name:
             raise ValueError("The name of a Phony target must not be empty.")
-        super().__init__()
+        self.name = str(name)
+
+    def __str__(self) -> str:
+        return self.name
 
 
 @dataclasses.dataclass
