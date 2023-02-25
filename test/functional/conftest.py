@@ -50,7 +50,7 @@ def run():
         )
 
         if raise_on_error and process.returncode != 0:
-            command = " ".join(args)
+            command = " ".join(*args)
             raise RuntimeError(
                 f"Command `{command}` returned exit code {process.returncode}.\n"
                 f"Stderr:\n{process.stderr}"
