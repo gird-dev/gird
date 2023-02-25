@@ -117,7 +117,7 @@ def convert_dep_function_rule_makefile1(
 ) -> MakefileRule:
     """Convert a DependencyFunction as a MakefileRule for Makefile1."""
     return MakefileRule(
-        target=Phony(dep_function.name),
+        target=get_path_relative_to_gird_path_run(dep_function.tag_path),
         deps=None,
         recipe=[get_python_function_shell_command(dep_function.function)],
     )
@@ -153,7 +153,7 @@ def create_deps_rule_makefile1(rule: Rule) -> MakefileRule:
     if rule.deps is not None:
         for dep in rule.deps:
             if isinstance(dep, DependencyFunction):
-                deps.append(dep.name)
+                deps.append(get_path_relative_to_gird_path_run(dep.tag_path))
             elif isinstance(dep, Rule):
                 deps.append(format_target_for_deps_rule(dep.target))
     deps = deps or None
@@ -206,8 +206,7 @@ def format_dep_makefile2(dep: Dependency) -> str:
     elif isinstance(dep, Rule):
         makefile_dep = format_target(dep.target)
     elif isinstance(dep, DependencyFunction):
-        dep_path = get_gird_path_tmp() / dep.name
-        makefile_dep = get_path_relative_to_gird_path_run(dep_path)
+        makefile_dep = get_path_relative_to_gird_path_run(dep.tag_path)
     else:
         raise TypeError(f"Unsupported dependency type '{type(dep)}'.")
     return makefile_dep
