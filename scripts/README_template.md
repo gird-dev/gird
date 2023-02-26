@@ -34,7 +34,7 @@ Make will do, as long as they support the `.PHONY` special target.
 
 ## Usage
 
-Define "rules" in *girdfile.py*. Depending on the composition of the rule
+Define "rules" in *girdfile.py*. Depending on the composition of a rule
 definition, a rule can, for example,
 
 - define a recipe to run a task, e.g., to update a target file,

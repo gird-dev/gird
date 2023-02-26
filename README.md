@@ -34,7 +34,7 @@ Make will do, as long as they support the `.PHONY` special target.
 
 ## Usage
 
-Define "rules" in *girdfile.py*. Depending on the composition of the rule
+Define "rules" in *girdfile.py*. Depending on the composition of a rule
 definition, a rule can, for example,
 
 - define a recipe to run a task, e.g., to update a target file,
@@ -147,7 +147,7 @@ import pathlib
 import gird
 WHEEL = pathlib.Path("package.whl")
 
-rule_build = gird.rule(
+RULE_BUILD = gird.rule(
     target=WHEEL,
     deps=pathlib.Path("module.py"),
     recipe="python -m build --wheel",
@@ -158,7 +158,7 @@ A (phony) rule with no target file. Phony rules are always executed when
 invoked.
 
 ```python
-rule_test = gird.rule(
+RULE_TEST = gird.rule(
     target=gird.Phony("test"),
     deps=WHEEL,
     recipe="pytest",
@@ -172,8 +172,8 @@ and to set the order of execution between rules.
 gird.rule(
     target=gird.Phony("all"),
     deps=[
-        rule_test,
-        rule_build,
+        RULE_TEST,
+        RULE_BUILD,
     ],
 )
 ```
@@ -201,21 +201,18 @@ gird.rule(
 )
 ```
 
-A Python function as a dependency to arbitrarily trigger rules.
+A Python function as a dependency to arbitrarily trigger rules. Below, have
+a local file re-fetched if a remote version is updated.
 
 ```python
 @gird.dep
-def is_remote_updated():
-    """Render the target outdated if a remote object's version is newer
-    than a local one.
-    """
-    # Return the "updated" state of this dependency function.
-    return get_target_version_local() < get_target_version_remote()
+def is_remote_newer():
+    return get_timestamp_local() < get_timestamp_remote()
 
 gird.rule(
-    target=TARGET_PATH,
-    deps=is_remote_updated,
-    recipe=fetch_target,
+    target=JSON1,
+    deps=is_remote_newer,
+    recipe=fetch_json1,
 )
 ```
 
