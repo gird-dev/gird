@@ -67,8 +67,8 @@ rule_pytest = rule(
 rule_check_formatting = rule(
     target=Phony("check_formatting"),
     recipe=[
-        "black --check gird scripts girdfile.py",
-        "isort --check gird scripts girdfile.py",
+        "black --check gird scripts test girdfile.py",
+        "isort --check gird scripts test girdfile.py",
     ],
     help="Check formatting with Black & isort.",
 )
