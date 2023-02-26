@@ -55,13 +55,9 @@ def write_makefiles(rules: Iterable[Rule]):
 
 def get_makefile_contents(rules: List[FormattedRule]) -> str:
     """Get contents of a full Makefile."""
-    makefile_contents = (
-        ".ONESHELL:\n"
-        + "\n"
-        + "\n\n".join(get_makefile_rule(rule) for rule in rules)
-        + "\n"
-    )
-    return makefile_contents
+    rules_makefile = [get_makefile_rule(rule) for rule in rules]
+    contents = "\n\n".join(rules_makefile) + "\n"
+    return contents
 
 
 def get_makefile_rule(rule: FormattedRule) -> str:
@@ -77,8 +73,8 @@ def get_makefile_rule(rule: FormattedRule) -> str:
         parts.extend(f" {dep}" for dep in rule.deps)
 
     if rule.recipe is not None:
-        parts.append("\n")
-        parts.append("\n".join(f"\t{subrecipe}" for subrecipe in rule.recipe))
+        recipe_makefile = " && ".join(subprecipe for subprecipe in rule.recipe)
+        parts.append("\n\t" + recipe_makefile)
 
     rule_makefile = "".join(parts)
 

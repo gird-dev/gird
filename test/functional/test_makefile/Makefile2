@@ -1,8 +1,5 @@
-.ONESHELL:
-
 file0:
-	echo 'line1\n' >> file0
-	echo 'line2\n' >> file0
+	echo 'line1\n' >> file0 && echo 'line2\n' >> file0
 
 .PHONY: test
 test:

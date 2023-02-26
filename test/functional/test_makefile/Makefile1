@@ -1,5 +1,3 @@
-.ONESHELL:
-
 .gird/tmp/function_dep:
 	python -c 'from girdfile import function_dep; function_dep()'
 

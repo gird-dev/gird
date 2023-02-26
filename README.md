@@ -30,7 +30,7 @@ Install Gird from PyPI with `pip install gird`, or from sources with
 Gird is built & tested for Python versions 3.8 & above.
 
 Gird requires [Make][make] to be available on the system. Most versions of Make
-will do, as long as they support the `.PHONY` & `.ONESHELL` special targets.
+will do, as long as they support the `.PHONY` special target.
 
 ## Usage
 
