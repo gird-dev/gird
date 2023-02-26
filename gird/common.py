@@ -2,7 +2,7 @@
 
 import dataclasses
 import pathlib
-from typing import Any, Callable, Iterable, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 # Type aliases
 Target = Union[pathlib.Path, "Phony"]
@@ -25,6 +25,6 @@ class Rule:
     """Gird rule. For documentation of the fields, see the function '.rule.rule'."""
 
     target: Target
-    deps: Optional[Iterable[Dependency]] = None
-    recipe: Optional[Iterable[SubRecipe]] = None
+    deps: Optional[List[Dependency]] = None
+    recipe: Optional[List[SubRecipe]] = None
     help: Optional[str] = None

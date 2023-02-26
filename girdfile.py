@@ -27,7 +27,7 @@ rule_check_readme_updated = rule(
     help="Check that README.md is updated based on README_template.md.",
 )
 
-rules_test = [
+RULES_TEST = [
     rule_pytest,
     rule_check_formatting,
     rule_check_readme_updated,
@@ -35,17 +35,15 @@ rules_test = [
 
 rule(
     target=Phony("test"),
-    deps=rules_test,
-    help="\n".join(f"- {rule.help}" for rule in rules_test),
+    deps=RULES_TEST,
+    help="\n".join(f"- {rule.help}" for rule in RULES_TEST),
 )
 
 rule(
     target=Path("README.md"),
-    deps=list(
-        chain(
-            *(Path(path).iterdir() for path in ("scripts", "gird")),
-            [Path("girdfile.py")],
-        ),
+    deps=chain(
+        *(Path(path).iterdir() for path in ("scripts", "gird")),
+        [Path("girdfile.py")],
     ),
     recipe=render_readme,
     help="Render README.md based on README_template.md.",
