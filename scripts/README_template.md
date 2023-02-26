@@ -13,7 +13,7 @@ automatically when some dependencies are updated. The goal of Gird is to combine
 the following features.
 
 - A simple, expressive, and intuitive rule definition and execution scheme very
-  close to Make.
+  close to that of Make.
 - Configuration in Python, allowing straightforward and familiar usage, without
   the need for a dedicated rule definition syntax.
 - Ability to take advantage of Python's flexibility and possibility to easily
@@ -40,7 +40,7 @@ definition, a rule can, for example,
 - define a recipe to run a task, e.g., to update a target file,
 - define prerequisites for the target, such as dependency files or other rules,
   and
-- use Python functions for more complex target & recipe functionality.
+- use Python functions for more complex dependency & recipe functionality.
 
 A rule is invoked by `gird <target_name>`. To list all targets, run
 `gird --list`.
