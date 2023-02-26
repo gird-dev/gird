@@ -54,7 +54,7 @@ def parse_args() -> argparse.Namespace:
 
 def run_target(target: str):
     """Run a target. Call sys.exit(returncode) in case of non-zero return code."""
-    makefile_dir = get_gird_path_tmp()
+    gird_path_tmp = get_gird_path_tmp()
     gird_path_run = get_gird_path_run()
 
     args = [
@@ -63,10 +63,10 @@ def run_target(target: str):
         "-C",
         str(gird_path_run.resolve()),
         "-f",
-        str((makefile_dir / "Makefile1").resolve()),
+        str((gird_path_tmp / "Makefile1").resolve()),
     ]
 
-    print(f"gird: Executing target '{target}'.")
+    print(f"gird: Executing target '{target}'.", flush=True)
 
     process = subprocess.run(
         args,
@@ -75,12 +75,15 @@ def run_target(target: str):
 
     if process.returncode != 0:
         print(
-            f"gird: Execution of target '{target}' returned with error. Possible "
-            f"output & error messages should be visible above."
+            (
+                f"gird: Execution of target '{target}' returned with error. "
+                "Possible output & error messages should be visible above."
+            ),
+            flush=True,
         )
         sys.exit(process.returncode)
     else:
-        print(f"gird: Target '{target}' was successfully executed.")
+        print(f"gird: Target '{target}' was successfully executed.", flush=True)
 
 
 def list_rules(rules: Iterable[Rule]):
@@ -101,6 +104,4 @@ def main():
         list_rules(rules)
     write_makefiles(rules)
     if args.target:
-        run_target(
-            args.target,
-        )
+        run_target(args.target)
