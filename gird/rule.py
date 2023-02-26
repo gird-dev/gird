@@ -137,12 +137,15 @@ def rule(
     >>> ]
     """
     # From this point onwards deps & recipe must be iterables.
-    if deps is not None and not isinstance(deps, Iterable):
-        deps = [deps]
-    if recipe is not None and (
-        not isinstance(recipe, Iterable) or isinstance(recipe, str)
-    ):
-        recipe = [recipe]
+    if deps is not None:
+        if not isinstance(deps, Iterable):
+            deps = [deps]
+        # Using List to turn possible Iterators to non-Iterators.
+        deps = list(deps)
+    if recipe is not None:
+        if not isinstance(recipe, Iterable) or isinstance(recipe, str):
+            recipe = [recipe]
+        recipe = list(recipe)
 
     main_rule = Rule(
         target=target,
