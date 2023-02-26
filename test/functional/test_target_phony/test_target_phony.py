@@ -3,7 +3,7 @@ import pathlib
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test(tmp_path, process_girdfile):
+def test_target_phony(tmp_path, process_girdfile):
     """Test that the recipe of the phony target is every time the target is
     invoked.
     """
