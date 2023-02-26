@@ -1,7 +1,9 @@
 import os
 import pathlib
+import platform
 import shutil
 import subprocess
+from time import sleep
 from typing import Optional
 
 import pytest
@@ -110,5 +112,9 @@ def process_girdfile(run):
                 pytest_tmp_path,
                 ["gird", target],
             )
+            # Work around timestamp truncation on some Make implementations,
+            # e.g., on macOS.
+            if platform.system() != "Linux":
+                sleep(1.0)
 
     return _process_girdfile
