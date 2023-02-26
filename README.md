@@ -145,10 +145,10 @@ or if the target file doesn't exist.
 ```python
 import pathlib
 import gird
-wheel = pathlib.Path("package.whl")
+WHEEL = pathlib.Path("package.whl")
 
 rule_build = gird.rule(
-    target=wheel,
+    target=WHEEL,
     deps=pathlib.Path("module.py"),
     recipe="python -m build --wheel",
 )
@@ -160,7 +160,7 @@ invoked.
 ```python
 rule_test = gird.rule(
     target=gird.Phony("test"),
-    deps=wheel,
+    deps=WHEEL,
     recipe="pytest",
 )
 ```
@@ -204,21 +204,18 @@ gird.rule(
 A Python function as a dependency to arbitrarily trigger rules.
 
 ```python
-import datetime
-EPOCH = datetime.datetime(2030, 1, 1)
-
 @gird.dep
-def unconditional_until_epoch():
-    """Return the "updated" state of this dependency. Here, render a
-    depending target outdated (trigger its recipe to be executed) always
-    before EPOCH.
+def is_remote_updated():
+    """Render the target outdated if a remote object's version is newer
+    than a local one.
     """
-    return datetime.datetime.now() < EPOCH
+    # Return the "updated" state of this dependency function.
+    return get_target_version_local() < get_target_version_remote()
 
 gird.rule(
-    target=JSON2,
-    deps=[JSON1, unconditional_until_epoch],
-    recipe=create_target,
+    target=TARGET_PATH,
+    deps=is_remote_updated,
+    recipe=fetch_target,
 )
 ```
 
