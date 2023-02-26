@@ -58,13 +58,13 @@ from scripts import assert_readme_updated, get_wheel_path, render_readme
 
 WHEEL_PATH = get_wheel_path()
 
-rule_pytest = rule(
+RULE_PYTEST = rule(
     target=Phony("pytest"),
     recipe="pytest",
     help="Run pytest.",
 )
 
-rule_check_formatting = rule(
+RULE_CHECK_FORMATTING = rule(
     target=Phony("check_formatting"),
     recipe=[
         "black --check gird scripts test girdfile.py",
@@ -73,16 +73,16 @@ rule_check_formatting = rule(
     help="Check formatting with Black & isort.",
 )
 
-rule_check_readme_updated = rule(
+RULE_CHECK_README_UPDATED = rule(
     target=Phony("check_readme_updated"),
     recipe=assert_readme_updated,
     help="Check that README.md is updated based on README_template.md.",
 )
 
 RULES_TEST = [
-    rule_pytest,
-    rule_check_formatting,
-    rule_check_readme_updated,
+    RULE_PYTEST,
+    RULE_CHECK_FORMATTING,
+    RULE_CHECK_README_UPDATED,
 ]
 
 rule(
