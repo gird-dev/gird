@@ -28,7 +28,7 @@ from .utils import get_python_function_shell_command
 
 
 @dataclasses.dataclass
-class MakefileRule:
+class FormattedRule:
     """A Rule with fields pre-formatted as strings for a Makefile."""
 
     target: Union[str, Phony]
@@ -42,30 +42,30 @@ def write_makefiles(rules: Iterable[Rule]):
     path_makefile1 = makefile_dir / "Makefile1"
     path_makefile2 = makefile_dir / "Makefile2"
     (
-        rules_makefile1,
-        rules_makefile2,
-    ) = convert_makefile_rules(rules)
-    for makefile_rules, makefile_path in zip(
-        (rules_makefile1, rules_makefile2),
+        rules_formatted_makefile1,
+        rules_formatted_makefile2,
+    ) = format_rules(rules)
+    for rules_formatted, path_makefile in zip(
+        (rules_formatted_makefile1, rules_formatted_makefile2),
         (path_makefile1, path_makefile2),
     ):
-        makefile_contents = format_makefile(makefile_rules)
-        makefile_path.write_text(makefile_contents)
+        makefile_contents = get_makefile_contents(rules_formatted)
+        path_makefile.write_text(makefile_contents)
 
 
-def format_makefile(rules: List[MakefileRule]) -> str:
-    """Format rules as a full Makefile."""
+def get_makefile_contents(rules: List[FormattedRule]) -> str:
+    """Get contents of a full Makefile."""
     makefile_contents = (
         ".ONESHELL:\n"
         + "\n"
-        + "\n\n".join(format_makefile_rule(rule) for rule in rules)
+        + "\n\n".join(get_makefile_rule(rule) for rule in rules)
         + "\n"
     )
     return makefile_contents
 
 
-def format_makefile_rule(rule: MakefileRule) -> str:
-    """Format a single rule for a Makefile."""
+def get_makefile_rule(rule: FormattedRule) -> str:
+    """Get a Makefile entry for a single rule."""
     parts = []
 
     if isinstance(rule.target, Phony):
@@ -80,25 +80,27 @@ def format_makefile_rule(rule: MakefileRule) -> str:
         parts.append("\n")
         parts.append("\n".join(f"\t{subrecipe}" for subrecipe in rule.recipe))
 
-    formatted_rule = "".join(parts)
+    rule_makefile = "".join(parts)
 
-    return formatted_rule
+    return rule_makefile
 
 
-def convert_makefile_rules(
+def format_rules(
     rules: Iterable[Rule],
-) -> Tuple[List[MakefileRule], List[MakefileRule]]:
-    """Convert Rules as MakefileRules, one set for both Makefile1 & Makefile2."""
-    rules_makefile1 = []
-    rules_makefile2 = []
+) -> Tuple[List[FormattedRule], List[FormattedRule]]:
+    """Convert Rules as FormattedRules, one set for both Makefile1 & Makefile2."""
+    rules_formatted_makefile1 = []
+    rules_formatted_makefile2 = []
 
     for dep_function in get_dep_functions(rules):
-        rules_makefile1.append(convert_dep_function_rule_makefile1(dep_function))
+        rules_formatted_makefile1.append(
+            format_dep_function_rule_makefile1(dep_function)
+        )
 
     for rule in rules:
-        rules_makefile1.extend(convert_rule_makefile1(rule))
-        rules_makefile2.append(convert_rule_makefile2(rule))
-    return rules_makefile1, rules_makefile2
+        rules_formatted_makefile1.extend(format_rule_makefile1(rule))
+        rules_formatted_makefile2.append(format_rule_makefile2(rule))
+    return rules_formatted_makefile1, rules_formatted_makefile2
 
 
 def get_dep_functions(rules: Iterable[Rule]) -> List[DependencyFunction]:
@@ -112,37 +114,35 @@ def get_dep_functions(rules: Iterable[Rule]) -> List[DependencyFunction]:
     return dep_functions
 
 
-def convert_dep_function_rule_makefile1(
+def format_dep_function_rule_makefile1(
     dep_function: DependencyFunction,
-) -> MakefileRule:
-    """Convert a DependencyFunction as a MakefileRule for Makefile1."""
-    return MakefileRule(
-        target=get_path_relative_to_gird_path_run(dep_function.tag_path),
+) -> FormattedRule:
+    """Convert a DependencyFunction as a FormattedRule for Makefile1."""
+    return FormattedRule(
+        target=format_path(dep_function.tag_path),
         deps=None,
         recipe=[get_python_function_shell_command(dep_function.function)],
     )
 
 
-def convert_rule_makefile1(rule: Rule) -> List[MakefileRule]:
-    """Convert Rule as MakefileRules for Makefile1."""
+def format_rule_makefile1(rule: Rule) -> Tuple[FormattedRule, FormattedRule]:
+    """Convert Rule as two FormattedRules for Makefile1."""
     rule_deps = create_deps_rule_makefile1(rule)
 
     target = Phony(format_target(rule.target))
-    makefile2_path = get_path_relative_to_gird_path_run(
-        get_gird_path_tmp() / "Makefile2"
-    )
+    makefile2_path = format_path(get_gird_path_tmp() / "Makefile2")
     recipe = f"$(MAKE) --file {makefile2_path} {target}"
-    rule_main = MakefileRule(
+    rule_main = FormattedRule(
         target=target,
         deps=[rule_deps.target],
         recipe=[recipe],
     )
 
-    return [rule_main, rule_deps]
+    return rule_main, rule_deps
 
 
-def create_deps_rule_makefile1(rule: Rule) -> MakefileRule:
-    """Create a MakefileRule for dependency propagation in Makefile1."""
+def create_deps_rule_makefile1(rule: Rule) -> FormattedRule:
+    """Create a FormattedRule for dependency propagation in Makefile1."""
 
     def format_target_for_deps_rule(target: Target) -> Phony:
         return Phony(str(format_target(target)) + "__deps")
@@ -153,22 +153,22 @@ def create_deps_rule_makefile1(rule: Rule) -> MakefileRule:
     if rule.deps is not None:
         for dep in rule.deps:
             if isinstance(dep, DependencyFunction):
-                deps.append(get_path_relative_to_gird_path_run(dep.tag_path))
+                deps.append(format_path(dep.tag_path))
             elif isinstance(dep, Rule):
                 deps.append(format_target_for_deps_rule(dep.target))
     deps = deps or None
 
-    makefile_rule = MakefileRule(
+    rule_formatted = FormattedRule(
         target=target,
         deps=deps,
         recipe=None,
     )
 
-    return makefile_rule
+    return rule_formatted
 
 
-def convert_rule_makefile2(rule: Rule) -> MakefileRule:
-    """Convert Rule as MakefileRule for Makefile2."""
+def format_rule_makefile2(rule: Rule) -> FormattedRule:
+    """Convert Rule as FormattedRule for Makefile2."""
     target = format_target(rule.target)
 
     deps = None
@@ -179,53 +179,53 @@ def convert_rule_makefile2(rule: Rule) -> MakefileRule:
     if rule.recipe is not None:
         recipe = format_recipe_makefile2(rule.recipe)
 
-    makefile_rule = MakefileRule(
+    rule_formatted = FormattedRule(
         target=target,
         deps=deps,
         recipe=recipe,
     )
 
-    return makefile_rule
+    return rule_formatted
 
 
 def format_target(target: Target) -> Union[str, Phony]:
     """Format target for a Makefile."""
     if isinstance(target, Phony):
-        makefile_target = target
+        target_formatted = target
     elif isinstance(target, pathlib.Path):
-        makefile_target = get_path_relative_to_gird_path_run(target)
+        target_formatted = format_path(target)
     else:
         raise NotImplementedError(f"Unsupported target type '{type(target)}'.")
-    return makefile_target
+    return target_formatted
 
 
 def format_dep_makefile2(dep: Dependency) -> str:
     """Format a Dependency for Makefile2."""
     if isinstance(dep, pathlib.Path):
-        makefile_dep = get_path_relative_to_gird_path_run(dep)
+        dep_formatted = format_path(dep)
     elif isinstance(dep, Rule):
-        makefile_dep = format_target(dep.target)
+        dep_formatted = format_target(dep.target)
     elif isinstance(dep, DependencyFunction):
-        makefile_dep = get_path_relative_to_gird_path_run(dep.tag_path)
+        dep_formatted = format_path(dep.tag_path)
     else:
         raise TypeError(f"Unsupported dependency type '{type(dep)}'.")
-    return makefile_dep
+    return dep_formatted
 
 
 def format_recipe_makefile2(recipe: Iterable[SubRecipe]) -> List[str]:
     """Format a recipe for Makefile2."""
-    subrecipes = []
+    subrecipes_formatted = []
     for subrecipe in recipe:
         if isinstance(subrecipe, str):
-            subrecipes.extend(subrecipe.split("\n"))
+            subrecipes_formatted.extend(subrecipe.split("\n"))
         elif isinstance(subrecipe, Callable):
-            subrecipes.append(get_python_function_shell_command(subrecipe))
+            subrecipes_formatted.append(get_python_function_shell_command(subrecipe))
         else:
             raise TypeError(f"Unsupported recipe type '{type(subrecipe)}'.")
-    return subrecipes
+    return subrecipes_formatted
 
 
-def get_path_relative_to_gird_path_run(path: pathlib.Path) -> str:
+def format_path(path: pathlib.Path) -> str:
     """Format/normalize a Path to be relative to gird_path_run."""
     gird_path_run = get_gird_path_run()
     return os.path.relpath(path, gird_path_run)
