@@ -52,6 +52,11 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
+def print_message(message: str):
+    """Print message about, e.g., rule's execution progress."""
+    print(f"gird: {message}", flush=True)
+
+
 def run_target(target: str):
     """Run a target. Call sys.exit(returncode) in case of non-zero return code."""
     gird_path_tmp = get_gird_path_tmp()
@@ -66,7 +71,7 @@ def run_target(target: str):
         str((gird_path_tmp / "Makefile1").resolve()),
     ]
 
-    print(f"gird: Executing target '{target}'.", flush=True)
+    print_message(f"Executing target '{target}'.")
 
     process = subprocess.run(
         args,
@@ -74,16 +79,13 @@ def run_target(target: str):
     )
 
     if process.returncode != 0:
-        print(
-            (
-                f"gird: Execution of target '{target}' returned with error. "
-                "Possible output & error messages should be visible above."
-            ),
-            flush=True,
+        print_message(
+            f"Execution of target '{target}' returned with error. Possible "
+            f"output & error messages should be visible above."
         )
         sys.exit(process.returncode)
     else:
-        print(f"gird: Target '{target}' was successfully executed.", flush=True)
+        print_message(f"Target '{target}' was successfully executed.")
 
 
 def list_rules(rules: Iterable[Rule]):
