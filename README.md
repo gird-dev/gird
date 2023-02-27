@@ -212,7 +212,7 @@ def is_remote_newer():
 gird.rule(
     target=JSON1,
     deps=is_remote_newer,
-    recipe=fetch_json1,
+    recipe=fetch_remote,
 )
 ```
 
@@ -234,7 +234,7 @@ gird.rule(
 Define rules in a loop, or however you like.
 
 ```python
-rules = [
+RULES = [
     gird.rule(
         target=source.with_suffix(".json.gz"),
         deps=source,

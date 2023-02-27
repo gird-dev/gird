@@ -103,7 +103,7 @@ def rule(
     >>> gird.rule(
     >>>     target=JSON1,
     >>>     deps=is_remote_newer,
-    >>>     recipe=fetch_json1,
+    >>>     recipe=fetch_remote,
     >>> )
 
     Compound recipes for, e.g., setup & teardown. All subrecipes of a rule are
@@ -121,7 +121,7 @@ def rule(
 
     Define rules in a loop, or however you like.
 
-    >>> rules = [
+    >>> RULES = [
     >>>     gird.rule(
     >>>         target=source.with_suffix(".json.gz"),
     >>>         deps=source,
