@@ -6,7 +6,7 @@
 Gird is a lightweight & general-purpose [Make][make]-like build tool & task
 runner for Python.
 
-[make]: https://www.gnu.org/software/make/
+[make]: https://en.wikipedia.org/wiki/Make_(software)
 
 Gird can be used to manage any project where some tasks need to be executed
 automatically when some dependencies are updated. The goal of Gird is to combine
@@ -29,8 +29,10 @@ Install Gird from PyPI with `pip install gird`, or from sources with
 
 Gird requires Python version 3.8 or newer, and is supported on Linux & macOS.
 
-Gird also requires [Make][make] to be available on the system. Most versions of
-Make will do, as long as they support the `.PHONY` special target.
+Gird also requires [`make`][make] to be available on the command line. It should
+be available on all Linux distributions via the default package manager, and on
+macOS via Xcode. Most implementations of Make will do, as long as they support
+the `.PHONY` special target.
 
 ## Usage
 
