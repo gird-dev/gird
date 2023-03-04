@@ -20,7 +20,7 @@ def get_readme_example_girdfile() -> str:
 
 
 def get_readme_example_gird_list() -> str:
-    process = subprocess.run(["gird", "--list"], text=True, stdout=subprocess.PIPE)
+    process = subprocess.run(["gird", "list"], text=True, stdout=subprocess.PIPE)
     return f"```\n{process.stdout}```"
 
 
