@@ -3,24 +3,24 @@ import pathlib
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test_dep_rule_phony(tmp_path, process_girdfile):
+def test_dep_rule_phony(tmp_path, run_rule):
     """Test that a recipe is always run if its rule has a rule dependency with a
     phony target.
     """
     path_target = tmp_path / "target"
 
-    process_girdfile(
+    run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        target="target",
+        rule="target",
     )
 
     mtime_first = path_target.stat().st_mtime_ns
 
-    process_girdfile(
+    run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        target="target",
+        rule="target",
     )
 
     mtime_second = path_target.stat().st_mtime_ns

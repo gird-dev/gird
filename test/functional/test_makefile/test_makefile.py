@@ -3,11 +3,11 @@ import pathlib
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test_makefile(tmp_path, process_girdfile):
-    process_girdfile(
+def test_makefile(tmp_path, run_rule):
+    run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        target="file4",
+        rule="file4",
     )
 
     path_file1 = tmp_path / "file1"

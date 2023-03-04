@@ -3,17 +3,17 @@ import pathlib
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test_recipe_compound(tmp_path, process_girdfile):
+def test_recipe_compound(tmp_path, run_rule):
     """Test that a compound recipe is properly run. Check that environment
     variables set by preceding subrecipes are accessible by function subrecipes,
     i.e., the subrecipes are run in a single shell instance.
     """
     path_target = tmp_path / "target"
 
-    process_girdfile(
+    run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        target="target",
+        rule="target",
     )
 
     assert path_target.exists()

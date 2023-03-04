@@ -4,7 +4,7 @@ import shutil
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test_girdfile_import(tmp_path, process_girdfile):
+def test_girdfile_import(tmp_path, run_rule):
     """Test that girdfile import works, and imports from the girdfile work."""
     path_target = tmp_path / "target"
 
@@ -14,10 +14,10 @@ def test_girdfile_import(tmp_path, process_girdfile):
     path_package_init.parent.mkdir()
     shutil.copy(path_package_init_original, path_package_init)
 
-    process_girdfile(
+    run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        target="target",
+        rule="target",
     )
 
     assert path_target.exists()
