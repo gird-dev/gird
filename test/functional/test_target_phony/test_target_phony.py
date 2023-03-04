@@ -4,8 +4,8 @@ TEST_DIR = pathlib.Path(__file__).parent
 
 
 def test_target_phony(tmp_path, run_rule):
-    """Test that the recipe of the phony target is every time the target is
-    invoked.
+    """Test that the recipe of a phony target is executed every time the rule
+    is invoked.
     """
     path_result = tmp_path / "target"
 
