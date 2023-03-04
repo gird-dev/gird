@@ -37,7 +37,7 @@ class FormattedRule:
 
 
 def write_makefiles(rules: Iterable[Rule]):
-    """Write Makefiles based on a GirdfileDefinition."""
+    """Write Makefiles for Rules."""
     makefile_dir = get_gird_path_tmp()
     path_makefile1 = makefile_dir / "Makefile1"
     path_makefile2 = makefile_dir / "Makefile2"
