@@ -52,7 +52,7 @@ def rule(
     >>>     recipe="python -m build --wheel",
     >>> )
 
-    A (phony) rule with no target file. Phony rules are always executed when
+    A rule with a phony target (not a file). The rule is always executed when
     invoked.
 
     >>> RULE_TEST = gird.rule(
