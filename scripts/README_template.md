@@ -53,7 +53,7 @@ This is the girdfile.py of the project itself.
 
 {{ example_girdfile }}
 
-Respective output from `gird --list`:
+Respective output from `gird list`:
 
 {{ example_gird_list }}
 
