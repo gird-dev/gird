@@ -4,7 +4,6 @@ import platform
 import shutil
 import subprocess
 from time import sleep
-from typing import Optional
 
 import pytest
 
@@ -65,13 +64,13 @@ def run():
 
 
 @pytest.fixture
-def process_girdfile(run):
-    def _process_girdfile(
+def run_rule(run):
+    def _run_rule(
         pytest_tmp_path: pathlib.Path,
         test_dir: pathlib.Path,
-        target: Optional[str] = None,
+        rule: str,
     ):
-        """Process a girdfile.py.
+        """Run a rule with Gird.
 
         Parameters
         ----------
@@ -81,8 +80,8 @@ def process_girdfile(run):
             Original test directory with girdfile.py. If the directory also
             contains files named Makefile1 & Makefile2, those will be compared
             to the Makefiles produced by Gird.
-        target
-            Name of the target to be run.
+        rule
+            The rule to be run.
         """
         # Copy girdfile.py to pytest_tmp_path.
         path_girdfile_original = test_dir / "girdfile.py"
@@ -92,12 +91,12 @@ def process_girdfile(run):
         gird_path = pytest_tmp_path / ".gird"
         gird_path_tmp = gird_path / "tmp"
 
-        # First run with no target to assert Makefile contents.
         run(
             pytest_tmp_path,
-            ["gird"],
+            ["gird", rule],
         )
 
+        # Assert Makefile contents if there are such files in test_dir.
         for makefile_name in ("Makefile1", "Makefile2"):
             path_makefile_target = test_dir / makefile_name
             path_makefile_result = gird_path_tmp / makefile_name
@@ -106,15 +105,9 @@ def process_girdfile(run):
                     path_makefile_result.read_text() == path_makefile_target.read_text()
                 )
 
-        # Run also with target if one is specified.
-        if target:
-            run(
-                pytest_tmp_path,
-                ["gird", target],
-            )
-            # Work around timestamp truncation on some Make implementations,
-            # e.g., on macOS.
-            if platform.system() != "Linux":
-                sleep(1.0)
+        # Work around timestamp truncation on some Make implementations, e.g.,
+        # on macOS.
+        if platform.system() != "Linux":
+            sleep(1.0)
 
-    return _process_girdfile
+    return _run_rule

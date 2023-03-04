@@ -3,24 +3,24 @@ import pathlib
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def test_target_phony(tmp_path, process_girdfile):
+def test_target_phony(tmp_path, run_rule):
     """Test that the recipe of the phony target is every time the target is
     invoked.
     """
     path_result = tmp_path / "target"
 
-    process_girdfile(
+    run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        target="target",
+        rule="target",
     )
 
     mtime_first = path_result.stat().st_mtime_ns
 
-    process_girdfile(
+    run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        target="target",
+        rule="target",
     )
 
     mtime_second = path_result.stat().st_mtime_ns
