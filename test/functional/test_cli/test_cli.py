@@ -24,20 +24,30 @@ def init_cli_test(pytest_tmp_path) -> List[str]:
 
 
 def test_cli_no_girdfile(tmp_path, run):
-    """Test functionality with no available girdfile."""
+    """Test functionality with nonexistent girdfile given as argument."""
     girdfile_name = "nonexistent-girdfile.py"
     process = run(
         tmp_path,
         ["gird", "--girdfile", girdfile_name],
         raise_on_error=False,
     )
+    assert process.returncode == 1
     assert process.stderr.startswith(
-        f"gird: Could not import girdfile '{girdfile_name}'."
+        f"gird: Error: Could not import girdfile '{girdfile_name}'."
     )
 
 
 def test_cli_help(tmp_path, run):
     """Test CLI argument --help."""
+    # Test with nonexistent girdfile.
+    process = run(
+        tmp_path,
+        ["gird", "--help"],
+        raise_on_error=False,
+    )
+    assert process.stdout.startswith("usage: gird")
+
+    # Test with an existing girdfile.
     args = init_cli_test(tmp_path)
     args.append("--help")
     process = run(
@@ -49,6 +59,15 @@ def test_cli_help(tmp_path, run):
 
 def test_cli_no_arguments(tmp_path, run):
     """Test CLI with no arguments."""
+    # Test with nonexistent girdfile.
+    process = run(
+        tmp_path,
+        ["gird"],
+        raise_on_error=False,
+    )
+    assert process.stdout.startswith("usage: gird")
+
+    # Test with an existing girdfile.
     args = init_cli_test(tmp_path)
     process = run(
         tmp_path,
@@ -69,6 +88,17 @@ def test_cli_verbose(tmp_path, run):
 
 def test_cli_list(tmp_path, run):
     """Test CLI subcommand 'list'."""
+    # Test with nonexistent girdfile.
+    process = run(
+        tmp_path,
+        ["gird", "list"],
+        raise_on_error=False,
+    )
+    assert process.returncode == 1
+    assert process.stderr.startswith(
+        "gird: Error: Could not import girdfile 'girdfile.py'."
+    )
+
     args = init_cli_test(tmp_path)
     args.append("list")
     process = run(
@@ -110,8 +140,9 @@ def test_cli_run_rule_with_error(tmp_path, run):
         args,
         raise_on_error=False,
     )
+    assert process.returncode == 2
     assert (
         process.stderr.strip()
         .split("\n")[-1]
-        .startswith(f"gird: Execution of rule '{target}' returned with error.")
+        .startswith(f"gird: Error: Execution of rule '{target}' returned with error.")
     )

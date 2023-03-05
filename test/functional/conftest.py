@@ -7,6 +7,8 @@ from time import sleep
 
 import pytest
 
+from gird.common import PARALLELISM_OFF, PARALLELISM_UNLIMITED_JOBS, Parallelism
+
 
 @pytest.fixture
 def run():
@@ -69,7 +71,8 @@ def run_rule(run):
         pytest_tmp_path: pathlib.Path,
         test_dir: pathlib.Path,
         rule: str,
-    ):
+        parallelism: Parallelism = PARALLELISM_OFF,
+    ) -> subprocess.CompletedProcess:
         """Run a rule with Gird.
 
         Parameters
@@ -82,6 +85,8 @@ def run_rule(run):
             to the Makefiles produced by Gird.
         rule
             The rule to be run.
+        parallelism
+            Parallelism state.
         """
         # Copy girdfile.py to pytest_tmp_path.
         path_girdfile_original = test_dir / "girdfile.py"
@@ -91,9 +96,15 @@ def run_rule(run):
         gird_path = pytest_tmp_path / ".gird"
         gird_path_tmp = gird_path / "tmp"
 
-        run(
+        args = ["gird", rule]
+        if parallelism != PARALLELISM_OFF:
+            args.append("-j")
+            if parallelism != PARALLELISM_UNLIMITED_JOBS:
+                args.append(str(parallelism))
+
+        process = run(
             pytest_tmp_path,
-            ["gird", rule],
+            args,
         )
 
         # Assert Makefile contents if there are such files in test_dir.
@@ -109,5 +120,7 @@ def run_rule(run):
         # on macOS.
         if platform.system() != "Linux":
             sleep(1.0)
+
+        return process
 
     return _run_rule
