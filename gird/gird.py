@@ -7,7 +7,13 @@ import subprocess
 import sys
 from typing import Iterable, List, Optional, Tuple
 
-from .common import PARALLELISM_OFF, PARALLELISM_UNLIMITED_JOBS, Parallelism, Rule
+from .common import (
+    PARALLELISM_OFF,
+    PARALLELISM_UNLIMITED_JOBS,
+    Parallelism,
+    Rule,
+    RunConfig,
+)
 from .girdfile import import_girdfile
 from .girdpath import get_gird_path_run, get_gird_path_tmp, init_gird_path
 from .makefile import format_target, write_makefiles
@@ -19,7 +25,7 @@ SUBCOMMAND_LIST = "list"
 def parse_args_import_rules() -> Tuple[
     List[Rule],
     str,
-    Optional[Parallelism],
+    Optional[RunConfig],
 ]:
     """Parse CLI arguments and import Rules from a girdfile. Call sys.exit() in
     case of an error or based on CLI arguments.
@@ -31,9 +37,8 @@ def parse_args_import_rules() -> Tuple[
     subcommand
         The name of the subcommand to be run. Either SUBCOMMAND_LIST or
         the name of a rule to be run.
-    parallelism
-        The selected parallelism state. Will be None if subcommand is
-        SUBCOMMAND_LIST.
+    run_config
+        Run configuration. Will be None if subcommand is SUBCOMMAND_LIST.
     """
     current_dir = pathlib.Path.cwd()
 
@@ -106,8 +111,8 @@ def parse_args_import_rules() -> Tuple[
         dest="subcommand",
         metavar=f"{{{SUBCOMMAND_LIST}, rule}}",
         help=(
-            "List all rules or run a single rule. For rule-specific help, run "
-            f"'gird [options] {{rule}} --help'.{rules_str}"
+            "List all rules or run a single rule. For help about running a rule, "
+            f"run 'gird [options] {{rule}} --help'.{rules_str}"
         ),
     )
 
@@ -137,6 +142,13 @@ def parse_args_import_rules() -> Tuple[
                 "invalidation."
             ),
         )
+
+        subparser_rule.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Print recipes that would be run, without actually executing them.",
+        )
+
         subparser_rule.add_argument(
             "-h",
             "--help",
@@ -148,9 +160,12 @@ def parse_args_import_rules() -> Tuple[
     subcommand = args_rest.subcommand
 
     if subcommand is not None and subcommand != SUBCOMMAND_LIST:
-        parallelism = args_rest.jobs
+        run_config = RunConfig(
+            parallelism=args_rest.jobs,
+            dry_run=args_rest.dry_run,
+        )
     else:
-        parallelism = None
+        run_config = None
 
     if girdfile_import_error is not None:
         if girdfile_arg is not None or subcommand == SUBCOMMAND_LIST:
@@ -161,7 +176,7 @@ def parse_args_import_rules() -> Tuple[
         parser.print_help()
         sys.exit(0)
 
-    return rules, subcommand, parallelism
+    return rules, subcommand, run_config
 
 
 def print_message(message: str, use_stderr: bool = False):
@@ -179,7 +194,7 @@ def print_message(message: str, use_stderr: bool = False):
 def run_rule(
     rules: Iterable[Rule],
     rule: str,
-    parallelism: Parallelism,
+    run_config: RunConfig,
 ):
     """Run a rule. Call sys.exit(returncode) in case of non-zero return code.
 
@@ -189,10 +204,10 @@ def run_rule(
         Rules defined by a girdfile.
     rule
         The rule to run.
-    parallelism
-        Parallelism state.
+    run_config
+        Run configuration.
     """
-    write_makefiles(rules, parallelism)
+    write_makefiles(rules, run_config)
 
     gird_path_tmp = get_gird_path_tmp()
     gird_path_run = get_gird_path_run()
@@ -236,8 +251,8 @@ def list_rules(rules: Iterable[Rule]):
 
 
 def main():
-    rules, subcommand, parallelism = parse_args_import_rules()
+    rules, subcommand, run_config = parse_args_import_rules()
     if subcommand == SUBCOMMAND_LIST:
         list_rules(rules)
     else:
-        run_rule(rules, subcommand, parallelism)
+        run_rule(rules, subcommand, run_config)

@@ -72,6 +72,7 @@ def run_rule(run):
         test_dir: pathlib.Path,
         rule: str,
         parallelism: Parallelism = PARALLELISM_OFF,
+        dry_run: bool = False,
     ) -> subprocess.CompletedProcess:
         """Run a rule with Gird.
 
@@ -87,6 +88,8 @@ def run_rule(run):
             The rule to be run.
         parallelism
             Parallelism state.
+        dry_run
+            Run Gird with '--dry-run'.
         """
         # Copy girdfile.py to pytest_tmp_path.
         path_girdfile_original = test_dir / "girdfile.py"
@@ -97,6 +100,8 @@ def run_rule(run):
         gird_path_tmp = gird_path / "tmp"
 
         args = ["gird", rule]
+        if dry_run:
+            args.append("--dry-run")
         if parallelism != PARALLELISM_OFF:
             args.append("-j")
             if parallelism != PARALLELISM_UNLIMITED_JOBS:
