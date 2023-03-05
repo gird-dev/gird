@@ -8,7 +8,7 @@ WHEEL_PATH = get_wheel_path()
 
 RULE_PYTEST = rule(
     target=Phony("pytest"),
-    recipe="pytest",
+    recipe="pytest -n auto",
     help="Run pytest.",
 )
 

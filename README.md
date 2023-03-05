@@ -62,7 +62,7 @@ WHEEL_PATH = get_wheel_path()
 
 RULE_PYTEST = rule(
     target=Phony("pytest"),
-    recipe="pytest",
+    recipe="pytest -n auto",
     help="Run pytest.",
 )
 
@@ -132,7 +132,7 @@ test
     - Check that README.md is updated based on README_template.md.
 README.md
     Render README.md based on README_template.md.
-dist/gird-1.4.1-py3-none-any.whl
+dist/gird-1.4.2-py3-none-any.whl
     Build distribution packages for the current version.
 publish
     Publish packages of the current version to PyPI.
