@@ -238,7 +238,7 @@ def run_rule(
         )
         sys.exit(process.returncode)
     else:
-        print_message(f"Target '{rule}' was successfully executed.")
+        print_message(f"Rule '{rule}' was successfully executed.")
 
 
 def list_rules(rules: Iterable[Rule]):
