@@ -69,7 +69,7 @@ def run_rule(run):
         pytest_tmp_path: pathlib.Path,
         test_dir: pathlib.Path,
         rule: str,
-    ):
+    ) -> subprocess.CompletedProcess:
         """Run a rule with Gird.
 
         Parameters
@@ -91,7 +91,7 @@ def run_rule(run):
         gird_path = pytest_tmp_path / ".gird"
         gird_path_tmp = gird_path / "tmp"
 
-        run(
+        process = run(
             pytest_tmp_path,
             ["gird", rule],
         )
@@ -109,5 +109,7 @@ def run_rule(run):
         # on macOS.
         if platform.system() != "Linux":
             sleep(1.0)
+
+        return process
 
     return _run_rule

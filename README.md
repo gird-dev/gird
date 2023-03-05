@@ -91,6 +91,7 @@ rule(
     target=Phony("test"),
     deps=RULES_TEST,
     help="\n".join(f"- {rule.help}" for rule in RULES_TEST),
+    parallel=True,
 )
 
 rule(

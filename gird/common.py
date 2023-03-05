@@ -30,3 +30,4 @@ class Rule:
     deps: Optional[List[Dependency]] = None
     recipe: Optional[List[SubRecipe]] = None
     help: Optional[str] = None
+    parallel: bool = False

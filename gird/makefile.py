@@ -127,7 +127,13 @@ def format_rule_makefile1(rule: Rule) -> Tuple[FormattedRule, FormattedRule]:
 
     target = Phony(format_target(rule.target))
     makefile2_path = format_path(get_gird_path_tmp() / "Makefile2")
-    recipe = f"$(MAKE) --file {makefile2_path} {target}"
+
+    recipe_parts = [f"$(MAKE) --file {makefile2_path}"]
+    if rule.parallel:
+        recipe_parts.append("-j --output-sync")
+    recipe_parts.append(str(target))
+    recipe = " ".join(recipe_parts)
+
     rule_main = FormattedRule(
         target=target,
         deps=[rule_deps.target],

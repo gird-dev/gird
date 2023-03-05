@@ -21,8 +21,9 @@ def rule(
         ]
     ] = None,
     help: Optional[str] = None,
+    parallel: bool = False,
 ) -> Rule:
-    """Define & register a Gird Rule.
+    """Define & register a Rule.
 
     Parameters
     ----------
@@ -34,6 +35,12 @@ def rule(
         Recipe to update the target.
     help
         Helptext/description of the rule.
+    parallel
+        Run the rule in parallel, when invoked as the main rule (`gird <target>`).
+        All dependencies of the rule will also be run in parallel. Output will
+        be buffered per each target. (E.g., colored output may be turned off by
+        some programs.) Recipes that require input may fail due to temporary
+        input stream invalidation.
 
     Examples
     --------
@@ -141,14 +148,15 @@ def rule(
             recipe = [recipe]
         recipe = list(recipe)
 
-    main_rule = Rule(
+    rule = Rule(
         target=target,
         deps=deps,
         recipe=recipe,
         help=help,
+        parallel=parallel,
     )
 
     if GIRDFILE_CONTEXT.rules is not None:
-        GIRDFILE_CONTEXT.rules.append(main_rule)
+        GIRDFILE_CONTEXT.rules.append(rule)
 
-    return main_rule
+    return rule
