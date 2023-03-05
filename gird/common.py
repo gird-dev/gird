@@ -11,7 +11,13 @@ SubRecipe = Union[str, Callable[[Any], Any]]
 
 
 class Phony:
-    """Target that is not a file."""
+    """Target that is not a file.
+
+    Parameters
+    ----------
+    name
+        Name of the phony target. Must not be empty.
+    """
 
     def __init__(self, name):
         if not name:
