@@ -43,7 +43,7 @@ rule(
     target=Path("README.md"),
     deps=chain(
         *(Path(path).iterdir() for path in ("scripts", "gird")),
-        [Path("girdfile.py")],
+        [Path("girdfile.py"), Path("pyproject.toml")],
     ),
     recipe=render_readme,
     help="Render README.md based on README_template.md.",
