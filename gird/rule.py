@@ -22,7 +22,7 @@ def rule(
     ] = None,
     help: Optional[str] = None,
 ) -> Rule:
-    """Define & register a Gird Rule.
+    """Define & register a Rule.
 
     Parameters
     ----------
@@ -141,7 +141,7 @@ def rule(
             recipe = [recipe]
         recipe = list(recipe)
 
-    main_rule = Rule(
+    rule = Rule(
         target=target,
         deps=deps,
         recipe=recipe,
@@ -149,6 +149,6 @@ def rule(
     )
 
     if GIRDFILE_CONTEXT.rules is not None:
-        GIRDFILE_CONTEXT.rules.append(main_rule)
+        GIRDFILE_CONTEXT.rules.append(rule)
 
-    return main_rule
+    return rule

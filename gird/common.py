@@ -36,3 +36,13 @@ class Rule:
     deps: Optional[List[Dependency]] = None
     recipe: Optional[List[SubRecipe]] = None
     help: Optional[str] = None
+
+
+class Parallelism(int):
+    # Integer type to control parallel rule execution. See the special constants
+    # PARALLELISM_OFF & PARALLELISM_UNLIMITED_JOBS.
+    pass
+
+
+PARALLELISM_OFF = Parallelism(0)
+PARALLELISM_UNLIMITED_JOBS = Parallelism(-1)

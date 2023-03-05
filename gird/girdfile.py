@@ -1,6 +1,7 @@
 """Code for processing a rule definition file."""
 
 import importlib.util
+import os
 import pathlib
 import sys
 from typing import List, Optional
@@ -35,10 +36,15 @@ def import_girdfile(girdfile_path: pathlib.Path) -> List[Rule]:
     """
     # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
     module_name = girdfile_path.stem
-    error = ImportError(f"Could not import girdfile '{girdfile_path}'.")
+    current_dir = pathlib.Path.cwd()
+    error_message = (
+        f"Could not import girdfile '{os.path.relpath(girdfile_path, current_dir)}'."
+    )
+    if not girdfile_path.exists():
+        raise ImportError(error_message)
     spec = importlib.util.spec_from_file_location(module_name, girdfile_path)
     if spec is None:
-        raise error
+        raise ImportError(error_message)
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     # Append the girdfile's directory to PYTHONPATH to enable imports in the file.
@@ -47,6 +53,6 @@ def import_girdfile(girdfile_path: pathlib.Path) -> List[Rule]:
         try:
             spec.loader.exec_module(module)
         except Exception as e:
-            raise error from e
+            raise ImportError(error_message + f" Reason: {e.args[0]}") from e
         rules = GIRDFILE_CONTEXT.rules
     return rules
