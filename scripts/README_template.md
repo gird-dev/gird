@@ -44,8 +44,8 @@ definition, a rule can, for example,
   and
 - use Python functions for more complex dependency & recipe functionality.
 
-A rule is invoked by `gird <target_name>`. To list all rules, run
-`gird list`.
+A rule is invoked by `gird {target}`, with optional parallel execution. To list
+all rules, run `gird list`.
 
 ### Example girdfile.py
 

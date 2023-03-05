@@ -44,8 +44,8 @@ definition, a rule can, for example,
   and
 - use Python functions for more complex dependency & recipe functionality.
 
-A rule is invoked by `gird <target_name>`. To list all rules, run
-`gird list`.
+A rule is invoked by `gird {target}`, with optional parallel execution. To list
+all rules, run `gird list`.
 
 ### Example girdfile.py
 
@@ -97,7 +97,7 @@ rule(
     target=Path("README.md"),
     deps=chain(
         *(Path(path).iterdir() for path in ("scripts", "gird")),
-        [Path("girdfile.py")],
+        [Path("girdfile.py"), Path("pyproject.toml")],
     ),
     recipe=render_readme,
     help="Render README.md based on README_template.md.",
