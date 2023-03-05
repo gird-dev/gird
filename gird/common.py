@@ -46,3 +46,11 @@ class Parallelism(int):
 
 PARALLELISM_OFF = Parallelism(0)
 PARALLELISM_UNLIMITED_JOBS = Parallelism(-1)
+
+
+@dataclasses.dataclass
+class RunConfig:
+    """Configuration for running rules."""
+
+    parallelism: Parallelism
+    dry_run: bool

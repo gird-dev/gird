@@ -25,9 +25,9 @@ from .common import (
     PARALLELISM_OFF,
     PARALLELISM_UNLIMITED_JOBS,
     Dependency,
-    Parallelism,
     Phony,
     Rule,
+    RunConfig,
     SubRecipe,
     Target,
 )
@@ -47,7 +47,7 @@ class FormattedRule:
 
 def write_makefiles(
     rules: Iterable[Rule],
-    parallelism: Parallelism,
+    run_config: RunConfig,
 ):
     """Write Makefiles for Rules.
 
@@ -55,8 +55,8 @@ def write_makefiles(
     ----------
     rules
         The Rules for the Makefile.
-    parallelism
-        Parallelism state.
+    run_config
+        Run configuration.
     """
     makefile_dir = get_gird_path_tmp()
     path_makefile1 = makefile_dir / "Makefile1"
@@ -64,7 +64,7 @@ def write_makefiles(
     (
         rules_formatted_makefile1,
         rules_formatted_makefile2,
-    ) = format_rules(rules, parallelism)
+    ) = format_rules(rules, run_config)
     for rules_formatted, path_makefile in zip(
         (rules_formatted_makefile1, rules_formatted_makefile2),
         (path_makefile1, path_makefile2),
@@ -103,7 +103,7 @@ def get_makefile_rule(rule: FormattedRule) -> str:
 
 def format_rules(
     rules: Iterable[Rule],
-    parallelism: Parallelism,
+    run_config: RunConfig,
 ) -> Tuple[List[FormattedRule], List[FormattedRule]]:
     """Convert Rules as FormattedRules, one set for both Makefile1 & Makefile2.
 
@@ -111,8 +111,8 @@ def format_rules(
     ----------
     rules
         The rules to format.
-    parallelism
-        Parallelism state.
+    run_config
+        Run configuration.
     """
     rules_formatted_makefile1 = []
     rules_formatted_makefile2 = []
@@ -123,7 +123,7 @@ def format_rules(
         )
 
     for rule in rules:
-        rules_formatted_makefile1.extend(format_rule_makefile1(rule, parallelism))
+        rules_formatted_makefile1.extend(format_rule_makefile1(rule, run_config))
         rules_formatted_makefile2.append(format_rule_makefile2(rule))
     return rules_formatted_makefile1, rules_formatted_makefile2
 
@@ -152,7 +152,7 @@ def format_dep_function_rule_makefile1(
 
 def format_rule_makefile1(
     rule: Rule,
-    parallelism: Parallelism,
+    run_config: RunConfig,
 ) -> Tuple[FormattedRule, FormattedRule]:
     """Convert Rule as two FormattedRules for Makefile1.
 
@@ -160,8 +160,8 @@ def format_rule_makefile1(
     ----------
     rule
         The rule to format.
-    parallelism
-        Parallelism state.
+    run_config
+        Run configuration.
     """
     rule_deps = create_deps_rule_makefile1(rule)
 
@@ -169,10 +169,12 @@ def format_rule_makefile1(
     makefile2_path = format_path(get_gird_path_tmp() / "Makefile2")
 
     recipe_parts = [f"$(MAKE) --file {makefile2_path}"]
-    if parallelism != PARALLELISM_OFF:
+    if run_config.dry_run:
+        recipe_parts.append("--dry-run")
+    if run_config.parallelism != PARALLELISM_OFF:
         recipe_parts.append("-j")
-        if parallelism != PARALLELISM_UNLIMITED_JOBS:
-            recipe_parts.append(str(parallelism))
+        if run_config.parallelism != PARALLELISM_UNLIMITED_JOBS:
+            recipe_parts.append(str(run_config.parallelism))
         if MAKE_SUPPORT_OUTPUT_SYNC:
             recipe_parts.append("--output-sync")
     recipe_parts.append(str(target))
