@@ -15,8 +15,13 @@ from .common import (
     RunConfig,
 )
 from .girdfile import import_girdfile
-from .girdpath import get_gird_path_run, get_gird_path_tmp, init_gird_path
-from .makefile import format_target, write_makefiles
+from .girdpath import (
+    get_gird_path_question,
+    get_gird_path_run,
+    get_gird_path_tmp,
+    init_gird_path,
+)
+from .makefile import format_target, get_target_name_for_question_rule, write_makefiles
 
 # Name of the subcommand that lists all rules.
 SUBCOMMAND_LIST = "list"
@@ -146,7 +151,13 @@ def parse_args_import_rules() -> Tuple[
         subparser_rule.add_argument(
             "--dry-run",
             action="store_true",
-            help="Print recipes that would be run, without actually executing them.",
+            help="Don't actually run any commands; just print them.",
+        )
+
+        subparser_rule.add_argument(
+            "--question",
+            action="store_true",
+            help="Run no commands; exit status says if up to date.",
         )
 
         subparser_rule.add_argument(
@@ -163,6 +174,7 @@ def parse_args_import_rules() -> Tuple[
         run_config = RunConfig(
             parallelism=args_rest.jobs,
             dry_run=args_rest.dry_run,
+            question=args_rest.question,
         )
     else:
         run_config = None
@@ -212,16 +224,22 @@ def run_rule(
     gird_path_tmp = get_gird_path_tmp()
     gird_path_run = get_gird_path_run()
 
+    if run_config.question:
+        rule_to_run = get_target_name_for_question_rule(rule)
+    else:
+        rule_to_run = rule
+
     args = [
         "make",
-        rule,
-        "-C",
+        rule_to_run,
+        "--directory",
         str(gird_path_run.resolve()),
-        "-f",
+        "--file",
         str((gird_path_tmp / "Makefile1").resolve()),
     ]
 
-    print_message(f"Executing rule '{rule}'.")
+    if not run_config.question:
+        print_message(f"Executing rule '{rule}'.")
 
     process = subprocess.run(
         args,
@@ -237,8 +255,17 @@ def run_rule(
             use_stderr=True,
         )
         sys.exit(process.returncode)
-    else:
-        print_message(f"Rule '{rule}' was successfully executed.")
+
+    if run_config.question:
+        question_file = get_gird_path_question() / rule
+        question_return_code = int(question_file.read_text().strip())
+        if question_return_code == 0:
+            print_message(f"Rule '{rule}' is up to date.")
+        else:
+            print_message(f"Rule '{rule}' is not up to date.")
+        sys.exit(question_return_code)
+
+    print_message(f"Rule '{rule}' was successfully executed.")
 
 
 def list_rules(rules: Iterable[Rule]):

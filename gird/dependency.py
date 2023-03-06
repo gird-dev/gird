@@ -24,13 +24,15 @@ class DependencyFunction:
         setting its modified time to the time of calling. If it returns False,
         the modified time will be set to "0".
 
-        This function should be called at most once when any rule is executed.
+        The function will be called and the tag file created/modified only on
+        the first invocation of this method.
         """
         tag_path = self.tag_path
-        tag_path.touch()
-        updated = self.function()
-        if not updated:
-            os.utime(tag_path, (0, 0))
+        if not tag_path.exists():
+            tag_path.touch()
+            updated = self.function()
+            if not updated:
+                os.utime(tag_path, (0, 0))
 
     @property
     def function(self):

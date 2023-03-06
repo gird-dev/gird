@@ -32,7 +32,7 @@ from .common import (
     Target,
 )
 from .dependency import DependencyFunction
-from .girdpath import get_gird_path_run, get_gird_path_tmp
+from .girdpath import get_gird_path_question, get_gird_path_run, get_gird_path_tmp
 from .utils import MAKE_SUPPORT_OUTPUT_SYNC, get_python_function_shell_command
 
 
@@ -153,8 +153,8 @@ def format_dep_function_rule_makefile1(
 def format_rule_makefile1(
     rule: Rule,
     run_config: RunConfig,
-) -> Tuple[FormattedRule, FormattedRule]:
-    """Convert Rule as two FormattedRules for Makefile1.
+) -> Tuple[FormattedRule, FormattedRule, FormattedRule]:
+    """Convert Rule as three FormattedRules for Makefile1.
 
     Parameters
     ----------
@@ -186,7 +186,9 @@ def format_rule_makefile1(
         recipe=[recipe],
     )
 
-    return rule_main, rule_deps
+    rule_question = create_question_rule_makefile1(rule, rule_deps)
+
+    return rule_main, rule_deps, rule_question
 
 
 def create_deps_rule_makefile1(rule: Rule) -> FormattedRule:
@@ -213,6 +215,31 @@ def create_deps_rule_makefile1(rule: Rule) -> FormattedRule:
     )
 
     return rule_formatted
+
+
+def create_question_rule_makefile1(
+    rule: Rule,
+    rule_deps: FormattedRule,
+) -> FormattedRule:
+    """Create a FormattedRule for target status questioning in Makefile1."""
+    makefile2_path = format_path(get_gird_path_tmp() / "Makefile2")
+    rule_target_formatted = str(format_target(rule.target))
+    question_file_name = rule_target_formatted.replace("/", "_")
+    question_file_path = format_path(get_gird_path_question() / question_file_name)
+    return FormattedRule(
+        target=Phony(get_target_name_for_question_rule(rule_target_formatted)),
+        deps=[rule_deps.target],
+        recipe=[
+            (
+                f"$(MAKE) --file {makefile2_path} --question {rule_target_formatted}; "
+                f"echo $$? > {question_file_path}"
+            )
+        ],
+    )
+
+
+def get_target_name_for_question_rule(target: str):
+    return target + "__question"
 
 
 def format_rule_makefile2(rule: Rule) -> FormattedRule:

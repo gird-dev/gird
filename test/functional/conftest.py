@@ -71,8 +71,10 @@ def run_rule(run):
         pytest_tmp_path: pathlib.Path,
         test_dir: pathlib.Path,
         rule: str,
+        raise_on_error: bool = True,
         parallelism: Parallelism = PARALLELISM_OFF,
         dry_run: bool = False,
+        question: bool = False,
     ) -> subprocess.CompletedProcess:
         """Run a rule with Gird.
 
@@ -90,6 +92,8 @@ def run_rule(run):
             Parallelism state.
         dry_run
             Run Gird with '--dry-run'.
+        question
+            Run Gird with '--question'.
         """
         # Copy girdfile.py to pytest_tmp_path.
         path_girdfile_original = test_dir / "girdfile.py"
@@ -100,8 +104,13 @@ def run_rule(run):
         gird_path_tmp = gird_path / "tmp"
 
         args = ["gird", rule]
+
         if dry_run:
             args.append("--dry-run")
+
+        if question:
+            args.append("--question")
+
         if parallelism != PARALLELISM_OFF:
             args.append("-j")
             if parallelism != PARALLELISM_UNLIMITED_JOBS:
@@ -110,6 +119,7 @@ def run_rule(run):
         process = run(
             pytest_tmp_path,
             args,
+            raise_on_error=raise_on_error,
         )
 
         # Assert Makefile contents if there are such files in test_dir.

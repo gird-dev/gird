@@ -54,3 +54,4 @@ class RunConfig:
 
     parallelism: Parallelism
     dry_run: bool
+    question: bool

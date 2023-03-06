@@ -13,8 +13,13 @@ def assert_dir(path: pathlib.Path):
 
 
 def init_gird_path(gird_path: pathlib.Path, girdfile: pathlib.Path):
-    """Remove temporary files from gird_path and make the functions get_gird_path,
-    get_gird_path_tmp, & get_gird_path_run work in this & all subprocesses.
+    """Remove temporary files from gird_path and make the following functions
+    work in this & all subprocesses.
+
+    - get_gird_path
+    - get_gird_path_tmp
+    - get_gird_path_question
+    - get_gird_path_run
     """
     os.environ[ENV_GIRD_PATH] = str(gird_path.resolve())
     os.environ[ENV_GIRD_PATH_RUN] = str(girdfile.parent.resolve())
@@ -33,6 +38,15 @@ def init_gird_path(gird_path: pathlib.Path, girdfile: pathlib.Path):
         if path.is_file():
             path.unlink()
 
+    gird_path_question = get_gird_path_question()
+    if gird_path_question.exists():
+        assert_dir(gird_path_question)
+    else:
+        gird_path_question.mkdir()
+    for path in gird_path_question.iterdir():
+        if path.is_file():
+            path.unlink()
+
 
 def get_gird_path() -> pathlib.Path:
     """Get directory for "permanent" & temporary files stored by Gird."""
@@ -44,6 +58,11 @@ def get_gird_path() -> pathlib.Path:
 def get_gird_path_tmp() -> pathlib.Path:
     """Get directory for temporary files stored by Gird."""
     return get_gird_path() / "tmp"
+
+
+def get_gird_path_question() -> pathlib.Path:
+    """Get directory for temporary "question" files stored by Gird."""
+    return get_gird_path_tmp() / "question"
 
 
 def get_gird_path_run() -> pathlib.Path:
