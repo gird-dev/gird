@@ -291,6 +291,8 @@ def format_recipe_main_makefile1(
             recipe_parts.append(str(run_config.parallelism))
         if MAKE_SUPPORT_OUTPUT_SYNC:
             recipe_parts.append("--output-sync")
+    if not run_config.verbose:
+        recipe_parts.append("--silent")
     recipe_parts.append(str(target))
     recipe = " ".join(recipe_parts)
     return recipe

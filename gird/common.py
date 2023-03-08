@@ -52,6 +52,7 @@ PARALLELISM_UNLIMITED_JOBS = Parallelism(-1)
 class RunConfig:
     """Configuration for running rules."""
 
+    verbose: bool
     parallelism: Parallelism
     dry_run: bool
     question: bool

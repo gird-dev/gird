@@ -3,7 +3,7 @@
 
 .PHONY: file0
 file0: file0__deps
-	$(MAKE) --file .gird/tmp/Makefile2 file0
+	$(MAKE) --file .gird/tmp/Makefile2 --silent file0
 
 .PHONY: file0__deps
 file0__deps:
@@ -14,7 +14,7 @@ file0__question: file0__deps
 
 .PHONY: test
 test: test__deps
-	$(MAKE) --file .gird/tmp/Makefile2 test
+	$(MAKE) --file .gird/tmp/Makefile2 --silent test
 
 .PHONY: test__deps
 test__deps:
@@ -25,7 +25,7 @@ test__question: test__deps
 
 .PHONY: package.whl
 package.whl: package.whl__deps
-	$(MAKE) --file .gird/tmp/Makefile2 package.whl
+	$(MAKE) --file .gird/tmp/Makefile2 --silent package.whl
 
 .PHONY: package.whl__deps
 package.whl__deps:
@@ -36,7 +36,7 @@ package.whl__question: package.whl__deps
 
 .PHONY: all
 all: all__deps
-	$(MAKE) --file .gird/tmp/Makefile2 all
+	$(MAKE) --file .gird/tmp/Makefile2 --silent all
 
 .PHONY: all__deps
 all__deps: test__deps package.whl__deps
@@ -47,7 +47,7 @@ all__question: all__deps
 
 .PHONY: file1
 file1: file1__deps
-	$(MAKE) --file .gird/tmp/Makefile2 file1
+	$(MAKE) --file .gird/tmp/Makefile2 --silent file1
 
 .PHONY: file1__deps
 file1__deps: .gird/tmp/function_dep
@@ -58,7 +58,7 @@ file1__question: file1__deps
 
 .PHONY: file2
 file2: file2__deps
-	$(MAKE) --file .gird/tmp/Makefile2 file2
+	$(MAKE) --file .gird/tmp/Makefile2 --silent file2
 
 .PHONY: file2__deps
 file2__deps: .gird/tmp/function_dep
@@ -69,7 +69,7 @@ file2__question: file2__deps
 
 .PHONY: file3
 file3: file3__deps
-	$(MAKE) --file .gird/tmp/Makefile2 file3
+	$(MAKE) --file .gird/tmp/Makefile2 --silent file3
 
 .PHONY: file3__deps
 file3__deps: file1__deps file2__deps
@@ -80,7 +80,7 @@ file3__question: file3__deps
 
 .PHONY: file4
 file4: file4__deps
-	$(MAKE) --file .gird/tmp/Makefile2 file4
+	$(MAKE) --file .gird/tmp/Makefile2 --silent file4
 
 .PHONY: file4__deps
 file4__deps: file3__deps

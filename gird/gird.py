@@ -172,6 +172,7 @@ def parse_args_import_rules() -> Tuple[
 
     if subcommand is not None and subcommand != SUBCOMMAND_LIST:
         run_config = RunConfig(
+            verbose=args_init.verbose,
             parallelism=args_rest.jobs,
             dry_run=args_rest.dry_run,
             question=args_rest.question,
@@ -237,6 +238,9 @@ def run_rule(
         "--file",
         str((gird_path_tmp / "Makefile1").resolve()),
     ]
+
+    if not run_config.verbose:
+        args.append("--silent")
 
     if not run_config.question:
         print_message(f"Executing rule '{rule}'.")
