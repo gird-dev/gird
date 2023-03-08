@@ -166,19 +166,8 @@ def format_rule_makefile1(
     rule_deps = create_deps_rule_makefile1(rule)
 
     target = Phony(format_target(rule.target))
-    makefile2_path = format_path(get_gird_path_tmp() / "Makefile2")
 
-    recipe_parts = [f"$(MAKE) --file {makefile2_path}"]
-    if run_config.dry_run:
-        recipe_parts.append("--dry-run")
-    if run_config.parallelism != PARALLELISM_OFF:
-        recipe_parts.append("-j")
-        if run_config.parallelism != PARALLELISM_UNLIMITED_JOBS:
-            recipe_parts.append(str(run_config.parallelism))
-        if MAKE_SUPPORT_OUTPUT_SYNC:
-            recipe_parts.append("--output-sync")
-    recipe_parts.append(str(target))
-    recipe = " ".join(recipe_parts)
+    recipe = format_recipe_main_makefile1(target=target, run_config=run_config)
 
     rule_main = FormattedRule(
         target=target,
@@ -285,6 +274,26 @@ def format_dep_makefile2(dep: Dependency) -> str:
     else:
         raise TypeError(f"Unsupported dependency type '{type(dep)}'.")
     return dep_formatted
+
+
+def format_recipe_main_makefile1(
+    target: Phony,
+    run_config: RunConfig,
+) -> str:
+    """Format recipe for the Makefile1 main rule."""
+    makefile2_path = format_path(get_gird_path_tmp() / "Makefile2")
+    recipe_parts = [f"$(MAKE) --file {makefile2_path}"]
+    if run_config.dry_run:
+        recipe_parts.append("--dry-run")
+    if run_config.parallelism != PARALLELISM_OFF:
+        recipe_parts.append("-j")
+        if run_config.parallelism != PARALLELISM_UNLIMITED_JOBS:
+            recipe_parts.append(str(run_config.parallelism))
+        if MAKE_SUPPORT_OUTPUT_SYNC:
+            recipe_parts.append("--output-sync")
+    recipe_parts.append(str(target))
+    recipe = " ".join(recipe_parts)
+    return recipe
 
 
 def format_recipe_makefile2(recipe: Iterable[SubRecipe]) -> List[str]:
