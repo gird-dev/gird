@@ -3,13 +3,14 @@ import pathlib
 import gird
 
 path_target = pathlib.Path("target")
+path_target_with_error = pathlib.Path("target_with_error")
 
 
 def create_target():
     path_target.touch()
 
 
-def raise_exception():
+def create_target_with_error():
     raise Exception("Exception")
 
 
@@ -21,6 +22,6 @@ gird.rule(
 
 
 gird.rule(
-    target=gird.Phony("target_with_error"),
-    recipe=raise_exception,
+    target=path_target_with_error,
+    recipe=create_target_with_error,
 )

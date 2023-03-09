@@ -204,12 +204,27 @@ def print_message(message: str, use_stderr: bool = False):
     print(" ".join(message_parts), file=file, flush=True)
 
 
+def exit_on_error(process: subprocess.CompletedProcess, rule: str):
+    """Print error & call sys.exit(returncode) in case the return code of a
+    process is non-zero.
+    """
+    if process.returncode != 0:
+        print_message(
+            (
+                f"Execution of rule '{rule}' returned with error. Possible "
+                f"output & error messages should be visible above."
+            ),
+            use_stderr=True,
+        )
+        sys.exit(process.returncode)
+
+
 def run_rule(
     rules: Iterable[Rule],
     rule: str,
     run_config: RunConfig,
 ):
-    """Run a rule. Call sys.exit(returncode) in case of non-zero return code.
+    """Run a rule. Call exit_on_error after each subprocess.
 
     Parameters
     ----------
@@ -225,14 +240,8 @@ def run_rule(
     gird_path_tmp = get_gird_path_tmp()
     gird_path_run = get_gird_path_run()
 
-    if run_config.question:
-        rule_to_run = get_target_name_for_question_rule(rule)
-    else:
-        rule_to_run = rule
-
-    args = [
+    args_common = [
         "make",
-        rule_to_run,
         "--directory",
         str(gird_path_run.resolve()),
         "--file",
@@ -240,36 +249,35 @@ def run_rule(
     ]
 
     if not run_config.verbose:
-        args.append("--silent")
+        args_common.append("--silent")
 
-    if not run_config.question:
-        print_message(f"Executing rule '{rule}'.")
+    args_question = args_common + [get_target_name_for_question_rule(rule)]
+    args_run = args_common + [rule]
 
     process = subprocess.run(
-        args,
+        args_question,
         text=True,
     )
 
-    if process.returncode != 0:
-        print_message(
-            (
-                f"Execution of rule '{rule}' returned with error. Possible "
-                f"output & error messages should be visible above."
-            ),
-            use_stderr=True,
-        )
-        sys.exit(process.returncode)
+    exit_on_error(process, rule)
 
-    if run_config.question:
-        question_file = get_gird_path_question() / rule
-        question_return_code = int(question_file.read_text().strip())
-        if question_return_code == 0:
-            print_message(f"Rule '{rule}' is up to date.")
-        else:
-            print_message(f"Rule '{rule}' is not up to date.")
+    question_file = get_gird_path_question() / rule
+    question_return_code = int(question_file.read_text().strip())
+    if question_return_code == 0:
+        print_message(f"'{rule}' is up to date.")
+        sys.exit()
+    elif run_config.question:
+        print_message(f"'{rule}' is not up to date.")
         sys.exit(question_return_code)
 
-    print_message(f"Rule '{rule}' was successfully executed.")
+    print_message(f"Executing rule of '{rule}'.")
+
+    process = subprocess.run(
+        args_run,
+        text=True,
+    )
+
+    exit_on_error(process, rule)
 
 
 def list_rules(rules: Iterable[Rule]):

@@ -23,7 +23,7 @@ def test_question(tmp_path, run_rule):
         assert (
             process.stdout.strip()
             .split("\n")[-1]
-            .startswith("gird: Rule 'target' is not up to date.")
+            .startswith("gird: 'target' is not up to date.")
         )
 
     run_rule(
@@ -43,5 +43,19 @@ def test_question(tmp_path, run_rule):
     assert (
         process.stdout.strip()
         .split("\n")[-1]
-        .startswith("gird: Rule 'target' is up to date.")
+        .startswith("gird: 'target' is up to date.")
+    )
+
+    # Run once more without --question.
+    process = run_rule(
+        pytest_tmp_path=tmp_path,
+        test_dir=TEST_DIR,
+        rule="target",
+    )
+
+    assert process.returncode == 0
+    assert (
+        process.stdout.strip()
+        .split("\n")[-1]
+        .startswith("gird: 'target' is up to date.")
     )
