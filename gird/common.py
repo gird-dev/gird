@@ -52,7 +52,12 @@ PARALLELISM_UNLIMITED_JOBS = Parallelism(-1)
 class RunConfig:
     """Configuration for running rules."""
 
+    target: str
     verbose: bool
     parallelism: Parallelism
     dry_run: bool
     question: bool
+
+    def __post_init__(self):
+        if self.dry_run:
+            self.verbose = True

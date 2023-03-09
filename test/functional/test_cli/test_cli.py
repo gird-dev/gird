@@ -112,7 +112,25 @@ def test_cli_list(tmp_path, run):
     assert process.stdout.startswith(rule_listing)
 
 
-def test_cli_run_rule(tmp_path, run):
+def test_cli_run(tmp_path, run):
+    """Test running a rule."""
+    args = init_cli_test(tmp_path)
+    args.extend(["run", "target"])
+    run(
+        tmp_path,
+        args,
+    )
+
+    # Check that rule was run.
+    path_target = tmp_path / "target"
+    assert path_target.exists()
+
+    # Check that .gird2 was used as gird_path.
+    gird_path = tmp_path / ".gird2"
+    assert len(list(gird_path.iterdir())) > 0
+
+
+def test_cli_target(tmp_path, run):
     """Test running a rule."""
     args = init_cli_test(tmp_path)
     args.append("target")
@@ -144,5 +162,7 @@ def test_cli_run_rule_with_error(tmp_path, run):
     assert (
         process.stderr.strip()
         .split("\n")[-1]
-        .startswith(f"gird: Error: Execution of rule '{target}' returned with error.")
+        .startswith(
+            f"gird: Error: Execution of rule of '{target}' returned with error."
+        )
     )

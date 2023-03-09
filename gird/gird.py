@@ -25,6 +25,7 @@ from .makefile import format_target, get_target_name_for_question_rule, write_ma
 
 # Name of the subcommand that lists all rules.
 SUBCOMMAND_LIST = "list"
+SUBCOMMAND_RUN = "run"
 
 
 def parse_args_import_rules() -> Tuple[
@@ -53,7 +54,7 @@ def parse_args_import_rules() -> Tuple[
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    group_options = parser.add_argument_group(title="options")
+    group_options = parser.add_argument_group(title="optional arguments")
 
     group_options.add_argument(
         "-f",
@@ -102,35 +103,36 @@ def parse_args_import_rules() -> Tuple[
         help=helptext_help,
     )
 
+    girdfile_str = os.path.relpath(girdfile_to_import, current_dir)
+    helptext_subparsers = "List all rules or run a single rule."
     if len(rules) > 0:
-        rules_str = (
-            f" Rules defined in {os.path.relpath(girdfile_to_import, current_dir)} are: "
+        targets_str = ", ".join(
+            "'" + str(format_target(rule.target)) + "'" for rule in rules
+        )
+        helptext_subparsers += (
+            f" Targets defined in {girdfile_str}: "
             + ", ".join("'" + str(format_target(rule.target)) + "'" for rule in rules)
             + "."
         )
+        helptext_run = f"One of the rules defined in {girdfile_str}: {targets_str}."
     else:
-        rules_str = ""
+        helptext_run = ""
 
     subparsers = parser.add_subparsers(
         title="subcommands",
         dest="subcommand",
-        metavar=f"{{{SUBCOMMAND_LIST}, rule}}",
-        help=(
-            "List all rules or run a single rule. For help about running a rule, "
-            f"run 'gird [options] {{rule}} --help'.{rules_str}"
-        ),
+        metavar=f"{{{SUBCOMMAND_LIST}, [run] target}}",
+        help=helptext_subparsers,
     )
 
-    subparsers.add_parser(SUBCOMMAND_LIST, add_help=False)
+    subparsers.add_parser(
+        SUBCOMMAND_LIST,
+        description=f"List all rules defined in {girdfile_str}.",
+    )
 
-    for rule in rules:
-        subparser_rule = subparsers.add_parser(
-            str(format_target(rule.target)),
-            description=rule.help,
-            add_help=False,
-        )
-
-        subparser_rule.add_argument(
+    def add_run_parser_arguments(parser):
+        """Add arguments for a parser with run functionality."""
+        parser.add_argument(
             "-j",
             "--jobs",
             type=Parallelism,
@@ -148,30 +150,58 @@ def parse_args_import_rules() -> Tuple[
             ),
         )
 
-        subparser_rule.add_argument(
+        parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Don't actually run any commands; just print them.",
+            help=(
+                "Print the commands that would be executed, but do not execute "
+                "them. Sets also --verbose."
+            ),
         )
 
-        subparser_rule.add_argument(
+        parser.add_argument(
             "--question",
             action="store_true",
-            help="Run no commands; exit status says if up to date.",
+            help=(
+                '"Question mode".  Do not run any commands, or print anything; '
+                "just return an exit status that is zero if the target is "
+                "already up to date, nonzero otherwise."
+            ),
         )
 
-        subparser_rule.add_argument(
+        parser.add_argument(
             "-h",
             "--help",
             action="help",
             help=helptext_help,
         )
 
+    subparser_run = subparsers.add_parser(
+        "run",
+        description="Run the rule of a target.",
+        add_help=False,
+    )
+    subparser_run.add_argument("target", help=helptext_run)
+    add_run_parser_arguments(subparser_run)
+
+    for rule in rules:
+        subparser_rule = subparsers.add_parser(
+            str(format_target(rule.target)),
+            description=rule.help,
+            add_help=False,
+        )
+        add_run_parser_arguments(subparser_rule)
+
     args_rest = parser.parse_args(args_rest)
     subcommand = args_rest.subcommand
 
     if subcommand is not None and subcommand != SUBCOMMAND_LIST:
+        if subcommand == SUBCOMMAND_RUN:
+            target = args_rest.target
+        else:
+            target = subcommand
         run_config = RunConfig(
+            target=target,
             verbose=args_init.verbose,
             parallelism=args_rest.jobs,
             dry_run=args_rest.dry_run,
@@ -204,14 +234,14 @@ def print_message(message: str, use_stderr: bool = False):
     print(" ".join(message_parts), file=file, flush=True)
 
 
-def exit_on_error(process: subprocess.CompletedProcess, rule: str):
+def exit_on_error(process: subprocess.CompletedProcess, target: str):
     """Print error & call sys.exit(returncode) in case the return code of a
     process is non-zero.
     """
     if process.returncode != 0:
         print_message(
             (
-                f"Execution of rule '{rule}' returned with error. Possible "
+                f"Execution of rule of '{target}' returned with error. Possible "
                 f"output & error messages should be visible above."
             ),
             use_stderr=True,
@@ -221,7 +251,6 @@ def exit_on_error(process: subprocess.CompletedProcess, rule: str):
 
 def run_rule(
     rules: Iterable[Rule],
-    rule: str,
     run_config: RunConfig,
 ):
     """Run a rule. Call exit_on_error after each subprocess.
@@ -230,8 +259,6 @@ def run_rule(
     ----------
     rules
         Rules defined by a girdfile.
-    rule
-        The rule to run.
     run_config
         Run configuration.
     """
@@ -251,33 +278,34 @@ def run_rule(
     if not run_config.verbose:
         args_common.append("--silent")
 
-    args_question = args_common + [get_target_name_for_question_rule(rule)]
-    args_run = args_common + [rule]
+    target = run_config.target
+    args_question = args_common + [get_target_name_for_question_rule(target)]
+    args_run = args_common + [target]
 
     process = subprocess.run(
         args_question,
         text=True,
     )
 
-    exit_on_error(process, rule)
+    exit_on_error(process, target)
 
-    question_file = get_gird_path_question() / rule
+    question_file = get_gird_path_question() / target
     question_return_code = int(question_file.read_text().strip())
     if question_return_code == 0:
-        print_message(f"'{rule}' is up to date.")
+        if not run_config.question:
+            print_message(f"'{target}' is up to date.")
         sys.exit()
     elif run_config.question:
-        print_message(f"'{rule}' is not up to date.")
         sys.exit(question_return_code)
 
-    print_message(f"Executing rule of '{rule}'.")
+    print_message(f"Executing rule of '{target}'.")
 
     process = subprocess.run(
         args_run,
         text=True,
     )
 
-    exit_on_error(process, rule)
+    exit_on_error(process, target)
 
 
 def list_rules(rules: Iterable[Rule]):
@@ -294,4 +322,4 @@ def main():
     if subcommand == SUBCOMMAND_LIST:
         list_rules(rules)
     else:
-        run_rule(rules, subcommand, run_config)
+        run_rule(rules, run_config)
