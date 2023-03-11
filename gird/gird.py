@@ -202,7 +202,7 @@ def parse_args_import_rules() -> Tuple[
             target = subcommand
         run_config = RunConfig(
             target=target,
-            verbose=args_init.verbose,
+            verbose=args_init.verbose or args_rest.dry_run,
             parallelism=args_rest.jobs,
             dry_run=args_rest.dry_run,
             question=args_rest.question,

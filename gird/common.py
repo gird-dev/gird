@@ -57,7 +57,3 @@ class RunConfig:
     parallelism: Parallelism
     dry_run: bool
     question: bool
-
-    def __post_init__(self):
-        if self.dry_run:
-            self.verbose = True
