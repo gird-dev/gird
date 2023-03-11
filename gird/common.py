@@ -54,6 +54,13 @@ class RunConfig:
 
     target: str
     verbose: bool
+    question: bool
+
+
+@dataclasses.dataclass
+class MakefileConfig:
+    """Configuration for writing Makefiles."""
+
+    verbose: bool
     parallelism: Parallelism
     dry_run: bool
-    question: bool

@@ -111,6 +111,18 @@ def test_cli_list(tmp_path, run):
 """
     assert process.stdout.startswith(rule_listing)
 
+    args = init_cli_test(tmp_path)
+    args.extend(["list", "--question"])
+    process = run(
+        tmp_path,
+        args,
+    )
+    rule_listing = """* target
+      Create
+      target.
+"""
+    assert process.stdout.startswith(rule_listing)
+
 
 def test_cli_run(tmp_path, run):
     """Test running a rule."""
