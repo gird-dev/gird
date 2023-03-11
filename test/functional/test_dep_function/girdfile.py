@@ -6,12 +6,10 @@ path_target_false = pathlib.Path("target_false")
 path_target_true = pathlib.Path("target_true")
 
 
-@gird.dep
 def dep_false():
     return False
 
 
-@gird.dep
 def dep_true():
     return True
 

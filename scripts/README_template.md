@@ -25,14 +25,7 @@ the following features.
 Install Gird from PyPI with `pip install gird`, or from sources with
 `pip install .`.
 
-### Requirements
-
-Gird requires Python version 3.8 or newer, and is supported on Linux & macOS.
-
-Gird also requires [`make`][make] to be available on the command line. It should
-be available on all Linux distributions via the default package manager, and on
-macOS via Xcode. Most implementations of Make will do, as long as they support
-the `.PHONY` special target.
+Gird requires Python version 3.9 or newer, and is supported on Linux & macOS.
 
 ## Usage
 
@@ -60,9 +53,3 @@ Respective output from `gird list`:
 ### Example rules
 
 {{ example_rules }}
-
-## Implementation of Gird
-
-Internally, Gird generates Makefiles & uses Make to run tasks, but interacting
-with Make in any way isn't obligatory when using Gird. In the future, Make as a
-dependency of Gird might be replaced altogether.

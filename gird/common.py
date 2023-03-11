@@ -1,13 +1,15 @@
 """Common types & type aliases."""
 
 import dataclasses
+import os
 import pathlib
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Optional, Tuple, Union
 
 # Type aliases
 Target = Union[pathlib.Path, "Phony"]
-Dependency = Union[pathlib.Path, "Rule", "gird.dependency.DependencyFunction"]
-SubRecipe = Union[str, Callable[[Any], Any]]
+Dependency = Union[pathlib.Path, "Rule", Callable[[], bool]]
+DependencyInternal = Union[pathlib.Path, "Phony", Callable[[], bool]]
+SubRecipe = Union[str, Callable[[], Any]]
 
 
 class Phony:
@@ -28,39 +30,30 @@ class Phony:
         return self.name
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class Rule:
     """Gird rule. For documentation of the fields, see the function '.rule.rule'."""
 
     target: Target
-    deps: Optional[List[Dependency]] = None
-    recipe: Optional[List[SubRecipe]] = None
+    deps: Optional[Tuple[DependencyInternal]] = None
+    recipe: Optional[Tuple[SubRecipe]] = None
     help: Optional[str] = None
+    parallel: bool = True
 
 
-class Parallelism(int):
-    # Integer type to control parallel rule execution. See the special constants
-    # PARALLELISM_OFF & PARALLELISM_UNLIMITED_JOBS.
-    pass
+def format_path(path: pathlib.Path) -> str:
+    """Format/normalize a Path to be relative to girdfile's directory, i.e., the
+    current working directory.
+    """
+    return os.path.relpath(path, pathlib.Path.cwd())
 
 
-PARALLELISM_OFF = Parallelism(0)
-PARALLELISM_UNLIMITED_JOBS = Parallelism(-1)
-
-
-@dataclasses.dataclass
-class RunConfig:
-    """Configuration for running rules."""
-
-    target: str
-    verbose: bool
-    question: bool
-
-
-@dataclasses.dataclass
-class MakefileConfig:
-    """Configuration for writing Makefiles."""
-
-    verbose: bool
-    parallelism: Parallelism
-    dry_run: bool
+def format_target(target: Target) -> str:
+    """Format a target."""
+    if isinstance(target, Phony):
+        node = target.name
+    elif isinstance(target, pathlib.Path):
+        node = format_path(target)
+    else:
+        raise ValueError(f"Unsupported target '{target}' of type '{type(target)}'.")
+    return node

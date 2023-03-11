@@ -1,21 +1,18 @@
-import os
 import pathlib
 
 import gird
 
-path_target = pathlib.Path("target")
-ENVVAR = "ENVVAR"
+PATH_TARGET = pathlib.Path("target")
 
 
-def check_env():
-    assert os.environ[ENVVAR] == ENVVAR
+def create_target():
+    PATH_TARGET.write_text("line1\n")
 
 
 gird.rule(
-    target=path_target,
+    target=PATH_TARGET,
     recipe=[
-        f"export {ENVVAR}={ENVVAR}",
-        check_env,
-        f"touch {path_target.resolve()}",
+        create_target,
+        f"echo 'line2' >> {PATH_TARGET.resolve()}",
     ],
 )

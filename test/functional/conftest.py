@@ -1,13 +1,9 @@
 import os
 import pathlib
-import platform
 import shutil
 import subprocess
-from time import sleep
 
 import pytest
-
-from gird.common import PARALLELISM_OFF, PARALLELISM_UNLIMITED_JOBS, Parallelism
 
 
 @pytest.fixture
@@ -72,9 +68,9 @@ def run_rule(run):
         test_dir: pathlib.Path,
         rule: str,
         raise_on_error: bool = True,
-        parallelism: Parallelism = PARALLELISM_OFF,
         dry_run: bool = False,
         question: bool = False,
+        output_sync: bool = False,
     ) -> subprocess.CompletedProcess:
         """Run a rule with Gird.
 
@@ -97,13 +93,22 @@ def run_rule(run):
         """
         # Copy girdfile.py to pytest_tmp_path.
         path_girdfile_original = test_dir / "girdfile.py"
-        path_girdfile = pytest_tmp_path / "girdfile.py"
+        # Use a unique name for the girdfile because the multiprocessing library
+        # may get confused on some environments if names must be imported from
+        # multiple modules with the same name.
+        path_girdfile = pytest_tmp_path / f"girdfile_{test_dir.name}.py"
         shutil.copy(path_girdfile_original, path_girdfile)
 
-        gird_path = pytest_tmp_path / ".gird"
-        gird_path_tmp = gird_path / "tmp"
+        args = [
+            "gird",
+            "--girdfile",
+            str(path_girdfile.resolve()),
+        ]
 
-        args = ["gird", rule]
+        if output_sync:
+            args.append("--output-sync")
+
+        args.append(rule)
 
         if dry_run:
             args.append("--dry-run")
@@ -111,30 +116,11 @@ def run_rule(run):
         if question:
             args.append("--question")
 
-        if parallelism != PARALLELISM_OFF:
-            args.append("-j")
-            if parallelism != PARALLELISM_UNLIMITED_JOBS:
-                args.append(str(parallelism))
-
         process = run(
             pytest_tmp_path,
             args,
             raise_on_error=raise_on_error,
         )
-
-        # Assert Makefile contents if there are such files in test_dir.
-        for makefile_name in ("Makefile1", "Makefile2"):
-            path_makefile_target = test_dir / makefile_name
-            path_makefile_result = gird_path_tmp / makefile_name
-            if path_makefile_target.exists():
-                assert (
-                    path_makefile_result.read_text() == path_makefile_target.read_text()
-                )
-
-        # Work around timestamp truncation on some Make implementations, e.g.,
-        # on macOS.
-        if platform.system() != "Linux":
-            sleep(1.0)
 
         return process
 
