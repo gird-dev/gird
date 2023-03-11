@@ -17,3 +17,4 @@ def test_recipe_compound(tmp_path, run_rule):
     )
 
     assert path_target.exists()
+    assert path_target.read_text() == "line1\nline2\n"

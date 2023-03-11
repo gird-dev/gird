@@ -17,9 +17,6 @@ def test_dry_run(tmp_path, run_rule):
         dry_run=True,
     )
 
-    assert (
-        "python -c 'from girdfile import create_target; create_target()"
-        in process.stdout
-    )
+    assert "create_target()" in process.stdout
 
     assert not path_target.exists()

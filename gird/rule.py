@@ -21,6 +21,7 @@ def rule(
         ]
     ] = None,
     help: Optional[str] = None,
+    parallel: bool = True,
 ) -> Rule:
     """Define & register a Rule.
 
@@ -34,6 +35,9 @@ def rule(
         Recipe to update the target.
     help
         Helptext/description of the rule.
+    parallel
+        Run the rule in parallel with other rules, i.e., in a separate process.
+        Recipes that require input may fail.
 
     Examples
     --------
@@ -96,7 +100,6 @@ def rule(
     A Python function as a dependency to arbitrarily trigger rules. Below, have
     a local file re-fetched if a remote version is updated.
 
-    >>> @gird.dep
     >>> def is_remote_newer():
     >>>     return get_timestamp_local() < get_timestamp_remote()
     >>>
@@ -106,16 +109,13 @@ def rule(
     >>>     recipe=fetch_remote,
     >>> )
 
-    Compound recipes for, e.g., setup & teardown. All subrecipes of a rule are
-    run in a single shell instance.
+    Compound recipes for, e.g., setup & teardown.
 
     >>> gird.rule(
-    >>>     target=JSON2,
-    >>>     deps=JSON1,
+    >>>     target=JSON1,
     >>>     recipe=[
-    >>>         "export VALUE2=value2",
-    >>>         create_target,
-    >>>         "unset VALUE2",
+    >>>         "login",
+    >>>         fetch_remote,
     >>>     ],
     >>> )
 
@@ -130,22 +130,29 @@ def rule(
     >>>     for source in [JSON1, JSON2]
     >>> ]
     """
-    # From this point onwards deps & recipe must be iterables.
+    # Turn deps into tuple of Path or Phony instances, not Rules.
     if deps is not None:
         if not isinstance(deps, Iterable):
             deps = [deps]
-        # Using List to turn possible Iterators to non-Iterators.
-        deps = list(deps)
+        deps_unruly = []
+        for dep in deps:
+            if isinstance(dep, Rule):
+                dep = dep.target
+            deps_unruly.append(dep)
+        deps = tuple(deps_unruly)
+
+    # Turn recipe into a tuple if it isn't.
     if recipe is not None:
         if not isinstance(recipe, Iterable) or isinstance(recipe, str):
             recipe = [recipe]
-        recipe = list(recipe)
+        recipe = tuple(recipe)
 
     rule = Rule(
         target=target,
         deps=deps,
         recipe=recipe,
         help=help,
+        parallel=parallel,
     )
 
     if GIRDFILE_CONTEXT.rules is not None:

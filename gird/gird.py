@@ -4,27 +4,25 @@ import argparse
 import dataclasses
 import os
 import pathlib
-import subprocess
 import sys
+import traceback
 from typing import Iterable, List, Optional, Tuple, Union
 
-from .common import (
-    PARALLELISM_OFF,
-    PARALLELISM_UNLIMITED_JOBS,
-    MakefileConfig,
-    Parallelism,
-    Phony,
-    Rule,
-    RunConfig,
-)
+from .common import Phony, Rule, Target
 from .girdfile import import_girdfile
-from .girdpath import get_gird_path_run, get_gird_path_tmp, init_gird_path
-from .makefile import (
-    format_target,
-    get_question_file_path,
-    get_target_name_for_question_rule,
-    write_makefiles,
-)
+from .rulesorter import RuleSorter, format_target
+from .run import run_rules
+
+
+@dataclasses.dataclass
+class RunConfig:
+    """Configuration for the subcommand for running rules."""
+
+    target: Target
+    verbose: bool = False
+    question: bool = False
+    dry_run: bool = False
+    output_sync: bool = False
 
 
 @dataclasses.dataclass
@@ -34,15 +32,21 @@ class ListConfig:
     question: bool
 
 
+def print_message(message: str, use_stderr: bool = False):
+    """Print message about, e.g., rule's execution progress. If use_stderr=True,
+    use sys.stderr instead of sys.stdout.
+    """
+    file = sys.stderr if use_stderr else sys.stdout
+    error_prefix = "Error: " if use_stderr else ""
+    print(f"gird: {error_prefix}{message}", file=file, flush=True)
+
+
 def parse_args_and_init() -> Tuple[
     List[Rule],
     Union[RunConfig, ListConfig],
 ]:
-    """Parse CLI arguments and do initialization.
-
-    Initialization includes calling the functions init_gird_path,
-    import_girdfile, & write_makefiles. It may not be done if the program exists
-    in case of an error or based on CLI arguments.
+    """Parse CLI arguments, import rules from a girdfile, and change current
+    working directory to the directory with the girdfile.
 
     Returns
     -------
@@ -51,8 +55,6 @@ def parse_args_and_init() -> Tuple[
     config
         Configuration for further actions, depending on CLI arguments.
     """
-    current_dir = pathlib.Path.cwd()
-
     parser = argparse.ArgumentParser(
         description="Gird - A Make-like build tool & task runner",
         add_help=False,
@@ -70,27 +72,32 @@ def parse_args_and_init() -> Tuple[
     )
 
     group_options.add_argument(
-        "-p",
-        "--girdpath",
-        type=pathlib.Path,
-        default=current_dir / ".gird",
-        help="Path of the working directory for Gird. Defaults to ./.gird.",
-    )
-
-    group_options.add_argument(
         "-v",
         "--verbose",
         action="store_true",
         help="Increase verbosity.",
     )
 
+    group_options.add_argument(
+        "--output-sync",
+        action="store_true",
+        help=(
+            "When running rules in parallel, ensure the output of each rule is "
+            "collected together rather than interspersed with output from "
+            "other rules."
+        ),
+    )
+
     args_init, args_rest = parser.parse_known_args()
 
     girdfile_arg: Optional[pathlib.Path] = args_init.girdfile
-    girdfile_to_import: pathlib.Path = girdfile_arg or current_dir / "girdfile.py"
+    girdfile_to_import: pathlib.Path = (
+        girdfile_arg or pathlib.Path.cwd() / "girdfile.py"
+    )
+    cwd_original = pathlib.Path.cwd()
+    os.chdir(girdfile_to_import.parent)
 
-    # Initialize & import Rules from girdfile.
-    init_gird_path(args_init.girdpath, girdfile_to_import)
+    # Import Rules from girdfile.
     try:
         rules = import_girdfile(girdfile_to_import)
         girdfile_import_error = None
@@ -109,8 +116,9 @@ def parse_args_and_init() -> Tuple[
     # Define --help here to be parsed after subparsers are completely defined.
     add_argument_help(group_options)
 
-    girdfile_str = os.path.relpath(girdfile_to_import, current_dir)
+    girdfile_str = os.path.relpath(girdfile_to_import, cwd_original)
     helptext_subparsers = "List all rules or run a single rule."
+    targets_str = ""
     if len(rules) > 0:
         targets_str = ", ".join(
             "'" + str(format_target(rule.target)) + "'" for rule in rules
@@ -154,29 +162,11 @@ def parse_args_and_init() -> Tuple[
     def add_run_parser_arguments(parser):
         """Add arguments for a parser with run functionality."""
         parser.add_argument(
-            "-j",
-            "--jobs",
-            type=Parallelism,
-            nargs="?",
-            default=PARALLELISM_OFF,
-            const=PARALLELISM_UNLIMITED_JOBS,
-            help=(
-                "Number of jobs for parallel execution (off by default). If no "
-                "integer argument is given, set no limit for the number of "
-                "parallel jobs. Output will be buffered per each target, if "
-                "the used Make implementation supports the feature. (E.g., "
-                "colored output may be turned off by some programs.) Recipes "
-                "that require input may fail due to temporary input stream "
-                "invalidation."
-            ),
-        )
-
-        parser.add_argument(
             "--dry-run",
             action="store_true",
             help=(
-                "Print the commands that would be executed, but do not execute "
-                "them. Sets also --verbose."
+                "Print the commands and function calls that would be executed, "
+                "but do not execute them."
             ),
         )
 
@@ -226,144 +216,93 @@ def parse_args_and_init() -> Tuple[
             target = args_rest.target
         else:
             target = subcommand
+        for rule in rules:
+            if target == format_target(rule.target):
+                target = rule.target
+                break
         config = RunConfig(
             target=target,
-            verbose=args_init.verbose or args_rest.dry_run,
+            verbose=args_init.verbose,
             question=args_rest.question,
-        )
-        makefile_config = MakefileConfig(
-            verbose=args_init.verbose or args_rest.dry_run,
-            parallelism=args_rest.jobs,
             dry_run=args_rest.dry_run,
+            output_sync=args_init.output_sync,
         )
     else:
         config = ListConfig(
             question=args_rest.question,
         )
-        makefile_config = MakefileConfig(
-            verbose=args_init.verbose,
-            parallelism=PARALLELISM_OFF,
-            dry_run=False,
-        )
-
-    write_makefiles(rules, makefile_config)
 
     return rules, config
 
 
-def print_message(message: str, use_stderr: bool = False):
-    """Print message about, e.g., rule's execution progress. If use_stderr=True,
-    use sys.stderr instead of sys.stdout.
-    """
-    file = sys.stderr if use_stderr else sys.stdout
-    message_parts = ["gird:"]
-    if use_stderr:
-        message_parts.append("Error:")
-    message_parts.append(message)
-    print(" ".join(message_parts), file=file, flush=True)
-
-
-def exit_on_error(process: subprocess.CompletedProcess, target: str):
-    """Print error & call sys.exit(returncode) in case the return code of a
-    process is non-zero.
-    """
-    if process.returncode != 0:
-        print_message(
-            (
-                f"Execution of rule of '{target}' returned with error. Possible "
-                f"output & error messages should be visible above."
-            ),
-            use_stderr=True,
-        )
-        sys.exit(process.returncode)
-
-
-def question_target(run_config: RunConfig) -> bool:
-    """Get the state of a target with '--question'.
-
-    Returns
-    -------
-    is_outdated
-        True if the target is not up to date.
-    """
-    args = [
-        "make",
-        "--directory",
-        str(get_gird_path_run().resolve()),
-        "--file",
-        str((get_gird_path_tmp() / "Makefile1").resolve()),
-    ]
-    if not run_config.verbose:
-        args.append("--silent")
-    target = run_config.target
-    args.append(get_target_name_for_question_rule(target))
-    process = subprocess.run(
-        args,
-        text=True,
+def exit_on_exception(exception: Exception, target: Target):
+    """Print error and exit program with error code."""
+    print(exception)
+    tback = "".join(
+        traceback.format_exception(type(exception), exception, exception.__traceback__)
     )
-    exit_on_error(process, target)
-    question_file = get_question_file_path(target)
-    question_return_code = int(question_file.read_text().strip())
-    is_outdated = question_return_code == 1
-    return is_outdated
+    print_message(
+        (
+            f"Executing the rule of '{format_target(target)}' caused an exception: {exception}\n"
+            f"Traceback:\n"
+            f"{tback}"
+        ),
+        use_stderr=True,
+    )
+    sys.exit(1)
 
 
-def run_rule(run_config: RunConfig):
+def run_rule(rules: Iterable[Rule], config: RunConfig):
     """Run a rule if its target is not up to date. Possibly exit the program.
 
     Parameters
     ----------
-    run_config
+    rules
+        Rules defined in a girdfile.
+    config
         Run configuration.
     """
-    is_outdated = question_target(run_config)
-    target = run_config.target
-    if run_config.question:
-        sys.exit(int(is_outdated))
-    elif not is_outdated:
-        print_message(f"'{target}' is up to date.")
+    try:
+        rule_sorter = RuleSorter(rules, config.target)
+    except Exception as e:
+        exit_on_exception(e, config.target)
+        raise
+
+    is_target_outdated = rule_sorter.is_target_outdated()
+
+    if config.question:
+        sys.exit(int(is_target_outdated))
+    elif not is_target_outdated:
+        print_message(f"'{config.target}' is up to date.")
         sys.exit()
 
-    args = [
-        "make",
-        "--directory",
-        str(get_gird_path_run().resolve()),
-        "--file",
-        str((get_gird_path_tmp() / "Makefile1").resolve()),
-    ]
-    if not run_config.verbose:
-        args.append("--silent")
-    args.append(target)
+    print_message(f"Executing the rule of '{config.target}'.")
 
-    print_message(f"Executing rule of '{target}'.")
-
-    process = subprocess.run(
-        args,
-        text=True,
-    )
-
-    exit_on_error(process, target)
+    try:
+        run_rules(
+            rule_sorter,
+            dry_run=config.dry_run,
+            output_sync=config.output_sync,
+        )
+    except Exception as e:
+        exit_on_exception(e, config.target)
 
 
 def list_rules(
     rules: Iterable[Rule],
-    list_config: ListConfig,
+    config: ListConfig,
 ):
     """List all rules. Possibly exit the program."""
     parts = []
     for rule in rules:
-        target_formatted = str(format_target(rule.target))
+        if config.question:
+            try:
+                rule_sorter = RuleSorter(rules, rule.target)
+            except Exception as e:
+                exit_on_exception(e, rule.target)
+                raise
 
-        if list_config.question:
-            is_outdated = question_target(
-                RunConfig(
-                    target=target_formatted,
-                    verbose=False,
-                    question=False,
-                )
-            )
-
-            if is_outdated and not isinstance(rule.target, Phony):
+            if rule_sorter.is_target_outdated() and not isinstance(rule.target, Phony):
                 indent_target = "* "
             else:
                 indent_target = "  "
@@ -372,7 +311,7 @@ def list_rules(
             indent_target = ""
             indent_help = "    "
 
-        parts.append(indent_target + target_formatted)
+        parts.append(indent_target + format_target(rule.target))
 
         if rule.help:
             parts.append(
@@ -384,6 +323,6 @@ def list_rules(
 def main():
     rules, config = parse_args_and_init()
     if isinstance(config, RunConfig):
-        run_rule(config)
+        run_rule(rules, config)
     else:
         list_rules(rules, config)

@@ -2,30 +2,27 @@ import pathlib
 import shutil
 from typing import List
 
+TEST_DIR = pathlib.Path(__file__).parent
+
 
 def init_cli_test(pytest_tmp_path) -> List[str]:
     """Initialize pytest_tmp_path for the CLI tests. Return optional arguments
     to be used in all CLI tests.
     """
-    # Use unconventionally named girdfile & gird_path in all the tests to make
-    # sure everything works with those.
-    path_girdfile_original = pathlib.Path(__file__).parent / "girdfile2.py"
-    path_girdfile = pytest_tmp_path / path_girdfile_original.name
-    gird_path = pytest_tmp_path / ".gird2"
+    path_girdfile_original = TEST_DIR / "girdfile.py"
+    path_girdfile = pytest_tmp_path / f"girdfile_{TEST_DIR.name}.py"
     shutil.copy(path_girdfile_original, path_girdfile)
     args = [
         "gird",
         "--girdfile",
         str(path_girdfile.resolve()),
-        "--girdpath",
-        str(gird_path.resolve()),
     ]
     return args
 
 
 def test_cli_no_girdfile(tmp_path, run):
     """Test functionality with nonexistent girdfile given as argument."""
-    girdfile_name = "nonexistent-girdfile.py"
+    girdfile_name = "nonexistent_girdfile.py"
     process = run(
         tmp_path,
         ["gird", "--girdfile", girdfile_name],
@@ -137,10 +134,6 @@ def test_cli_run(tmp_path, run):
     path_target = tmp_path / "target"
     assert path_target.exists()
 
-    # Check that .gird2 was used as gird_path.
-    gird_path = tmp_path / ".gird2"
-    assert len(list(gird_path.iterdir())) > 0
-
 
 def test_cli_target(tmp_path, run):
     """Test running a rule."""
@@ -155,15 +148,11 @@ def test_cli_target(tmp_path, run):
     path_target = tmp_path / "target"
     assert path_target.exists()
 
-    # Check that .gird2 was used as gird_path.
-    gird_path = tmp_path / ".gird2"
-    assert len(list(gird_path.iterdir())) > 0
 
-
-def test_cli_run_rule_with_error(tmp_path, run):
-    """Test running a rule that causes an error."""
+def test_cli_unexisting_target(tmp_path, run):
+    """Test functionality with nonexistent target given as argument."""
     args = init_cli_test(tmp_path)
-    target = "target_with_error"
+    target = "nonexistent_target"
     args.append(target)
     process = run(
         tmp_path,
@@ -171,10 +160,33 @@ def test_cli_run_rule_with_error(tmp_path, run):
         raise_on_error=False,
     )
     assert process.returncode == 2
-    assert (
-        process.stderr.strip()
-        .split("\n")[-1]
-        .startswith(
-            f"gird: Error: Execution of rule of '{target}' returned with error."
-        )
+    assert process.stderr.startswith(f"usage: gird [")
+
+
+def test_cli_run_rule_with_error(tmp_path, run):
+    """Test running a rule that causes an error."""
+    args = init_cli_test(tmp_path)
+
+    target = "target_with_error1"
+    args1 = args + [target]
+    process = run(
+        tmp_path,
+        args1,
+        raise_on_error=False,
+    )
+    assert process.returncode == 1
+    assert process.stderr.startswith(
+        f"gird: Error: Executing the rule of '{target}' caused an exception:"
+    )
+
+    target = "target_with_error2"
+    args2 = args + [target]
+    process = run(
+        tmp_path,
+        args2,
+        raise_on_error=False,
+    )
+    assert process.returncode == 1
+    assert process.stderr.startswith(
+        f"gird: Error: Executing the rule of '{target}' caused an exception:"
     )
