@@ -160,6 +160,7 @@ def parse_args_import_rules() -> Tuple[
         )
 
         parser.add_argument(
+            "-q",
             "--question",
             action="store_true",
             help=(
