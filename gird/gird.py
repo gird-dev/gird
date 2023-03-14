@@ -30,6 +30,7 @@ class ListConfig:
     """Configuration for the subcommand that lists all rules."""
 
     question: bool
+    all: bool
 
 
 def print_message(message: str, use_stderr: bool = False):
@@ -157,6 +158,13 @@ def parse_args_and_init() -> Tuple[
         ),
     )
 
+    parser_list.add_argument(
+        "-a",
+        "--all",
+        action="store_true",
+        help="Include also rules defined with 'listed=False'.",
+    )
+
     add_argument_help(parser_list)
 
     def add_run_parser_arguments(parser):
@@ -230,6 +238,7 @@ def parse_args_and_init() -> Tuple[
     else:
         config = ListConfig(
             question=args_rest.question,
+            all=args_rest.all,
         )
 
     return rules, config
@@ -292,9 +301,12 @@ def list_rules(
     rules: Iterable[Rule],
     config: ListConfig,
 ):
-    """List all rules. Possibly exit the program."""
+    """List rules. Possibly exit the program."""
     parts = []
     for rule in rules:
+        if not rule.listed and not config.all:
+            continue
+
         if config.question:
             try:
                 rule_sorter = RuleSorter(rules, rule.target)

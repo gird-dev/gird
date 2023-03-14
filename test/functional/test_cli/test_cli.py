@@ -106,7 +106,21 @@ def test_cli_list(tmp_path, run):
     Create
     target.
 """
-    assert process.stdout.startswith(rule_listing)
+    assert process.stdout == rule_listing
+
+    args = init_cli_test(tmp_path)
+    args.extend(["list", "--all"])
+    process = run(
+        tmp_path,
+        args,
+    )
+    rule_listing = """target
+    Create
+    target.
+target_with_error1
+target_with_error2
+"""
+    assert process.stdout == rule_listing
 
     args = init_cli_test(tmp_path)
     args.extend(["list", "--question"])
@@ -118,7 +132,7 @@ def test_cli_list(tmp_path, run):
       Create
       target.
 """
-    assert process.stdout.startswith(rule_listing)
+    assert process.stdout == rule_listing
 
 
 def test_cli_run(tmp_path, run):

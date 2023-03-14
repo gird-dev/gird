@@ -22,6 +22,7 @@ def rule(
     ] = None,
     help: Optional[str] = None,
     parallel: bool = True,
+    listed: bool = True,
 ) -> Rule:
     """Define & register a Rule.
 
@@ -38,6 +39,8 @@ def rule(
     parallel
         Run the rule in parallel with other rules, i.e., in a separate process.
         Recipes that require input may fail.
+    listed
+        Include the rule in 'gird list'.
 
     Examples
     --------
@@ -153,6 +156,7 @@ def rule(
         recipe=recipe,
         help=help,
         parallel=parallel,
+        listed=listed,
     )
 
     if GIRDFILE_CONTEXT.rules is not None:
