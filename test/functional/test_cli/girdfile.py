@@ -25,10 +25,12 @@ gird.rule(
 gird.rule(
     target=path_target_with_error1,
     recipe=create_target_with_error1,
+    listed=False,
 )
 
 
 gird.rule(
     target=path_target_with_error2,
     recipe="exit 1",
+    listed=False,
 )

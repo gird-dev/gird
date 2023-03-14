@@ -39,6 +39,7 @@ class Rule:
     recipe: Optional[Tuple[SubRecipe]] = None
     help: Optional[str] = None
     parallel: bool = True
+    listed: bool = True
 
 
 def format_path(path: pathlib.Path) -> str:
