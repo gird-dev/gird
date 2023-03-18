@@ -119,10 +119,9 @@ def parse_args_and_init() -> Tuple[
 
     girdfile_str = os.path.relpath(girdfile_to_import, cwd_original)
     helptext_subparsers = "List all rules or run a single rule."
-    targets_str = ""
     if len(rules) > 0:
         targets_str = ", ".join(
-            "'" + str(format_target(rule.target)) + "'" for rule in rules
+            "'" + str(format_target(rule.target)) + "'" for rule in rules if rule.listed
         )
         helptext_subparsers += f" Targets defined in {girdfile_str}: {targets_str}."
         helptext_run = f"One of the targets defined in {girdfile_str}: {targets_str}."
