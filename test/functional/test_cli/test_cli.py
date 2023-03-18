@@ -10,7 +10,10 @@ def init_cli_test(pytest_tmp_path) -> List[str]:
     to be used in all CLI tests.
     """
     path_girdfile_original = TEST_DIR / "girdfile.py"
-    path_girdfile = pytest_tmp_path / f"girdfile_{TEST_DIR.name}.py"
+    # Use subdirectory to test that also that works.
+    path_run_dir = pytest_tmp_path / "run_dir"
+    path_girdfile = path_run_dir / f"girdfile_{TEST_DIR.name}.py"
+    path_run_dir.mkdir(exist_ok=True)
     shutil.copy(path_girdfile_original, path_girdfile)
     args = [
         "gird",
@@ -145,7 +148,7 @@ def test_cli_run(tmp_path, run):
     )
 
     # Check that rule was run.
-    path_target = tmp_path / "target"
+    path_target = tmp_path / "run_dir" / "target"
     assert path_target.exists()
 
 
@@ -159,7 +162,7 @@ def test_cli_target(tmp_path, run):
     )
 
     # Check that rule was run.
-    path_target = tmp_path / "target"
+    path_target = tmp_path / "run_dir" / "target"
     assert path_target.exists()
 
 
