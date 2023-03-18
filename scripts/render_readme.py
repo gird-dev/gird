@@ -38,6 +38,8 @@ def get_readme_example_rules() -> str:
             lines_formatted = [line_raw[4:] for line_raw in lines_raw]
             lines_formatted.insert(0, "```python")
             lines_formatted.append("```")
+        elif len(items_formatted) == 0 or items_formatted[-1].startswith("```python"):
+            lines_formatted = ["#### " + " ".join(lines_raw)]
         else:
             lines_formatted = lines_raw
         item_formatted = "\n".join(lines_formatted)

@@ -133,9 +133,10 @@ publish
 
 ### Example rules
 
-A rule with files as its target & dependency. When the rule is invoked, the
-recipe is executed only if the dependency file has been or will be updated,
-or if the target file doesn't exist.
+#### A rule with files as its target & dependency.
+
+When the rule is invoked, the recipe is executed only if the dependency file
+has been or will be updated, or if the target file doesn't exist.
 
 ```python
 import pathlib
@@ -149,8 +150,9 @@ RULE_BUILD = gird.rule(
 )
 ```
 
-A rule with a phony target (not a file). The rule is always executed when
-invoked.
+#### A rule with a phony target (not a file).
+
+The rule is always executed when invoked.
 
 ```python
 RULE_TEST = gird.rule(
@@ -160,8 +162,9 @@ RULE_TEST = gird.rule(
 )
 ```
 
-A rule with other rules as dependencies, to group multiple rules together,
-and to set the order of execution between rules.
+#### A rule with other rules as dependencies.
+
+Group multiple rules together, and set the order of execution between rules.
 
 ```python
 gird.rule(
@@ -173,18 +176,24 @@ gird.rule(
 )
 ```
 
-A rule with a Python function recipe.
+#### A rule with a Python function recipe.
+
+To parameterize a function recipe for reusability, use, e.g.,
+`functools.partial`. Functions need to be picklable when used in rules
+defined with `parallel=True` (default). I.e., Lambda functions and locally
+defined functions require `parallel=False`.
 
 ```python
 import json
+import functools
 JSON1 = pathlib.Path("file1.json")
 JSON2 = pathlib.Path("file2.json")
 
-def create_target():
-     JSON2.write_text(
+def create_target(json_in: pathlib.Path, json_out: pathlib.Path):
+     json_out.write_text(
          json.dumps(
              json.loads(
-                 JSON1.read_text()
+                 json_in.read_text()
              ).update(value2="value2")
          )
      )
@@ -192,12 +201,14 @@ def create_target():
 gird.rule(
     target=JSON2,
     deps=JSON1,
-    recipe=create_target,
+    recipe=functools.partial(create_target, JSON1, JSON2),
+    parallel=True,
 )
 ```
 
-A Python function as a dependency to arbitrarily trigger rules. Below, have
-a local file re-fetched if a remote version is updated.
+#### A Python function as a dependency to arbitrarily trigger rules.
+
+Below, have a local file re-fetched if a remote version is updated.
 
 ```python
 def is_remote_newer():
@@ -210,7 +221,7 @@ gird.rule(
 )
 ```
 
-Compound recipes for, e.g., setup & teardown.
+#### Compound recipes for, e.g., setup & teardown.
 
 ```python
 gird.rule(
@@ -222,13 +233,16 @@ gird.rule(
 )
 ```
 
-Define rules in a loop, or however you like.
+#### Flexibly define rules with, e.g., loops or in-line nesting.
 
 ```python
 RULES = [
     gird.rule(
         target=source.with_suffix(".json.gz"),
-        deps=source,
+        deps=gird.rule(
+            target=source,
+            recipe=functools.partial(fetch_remote, source),
+        ),
         recipe=f"gzip -k {source.resolve()}",
     )
     for source in [JSON1, JSON2]
