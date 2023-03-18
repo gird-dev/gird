@@ -91,11 +91,9 @@ def parse_args_and_init() -> Tuple[
 
     args_init, args_rest = parser.parse_known_args()
 
-    girdfile_arg: Optional[pathlib.Path] = args_init.girdfile
-    girdfile_to_import: pathlib.Path = (
-        girdfile_arg or pathlib.Path.cwd() / "girdfile.py"
-    )
     cwd_original = pathlib.Path.cwd()
+    girdfile_arg: Optional[pathlib.Path] = args_init.girdfile
+    girdfile_to_import: pathlib.Path = cwd_original / (girdfile_arg or "girdfile.py")
     os.chdir(girdfile_to_import.parent)
 
     # Import Rules from girdfile.
