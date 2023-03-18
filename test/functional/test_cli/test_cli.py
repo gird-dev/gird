@@ -192,9 +192,7 @@ def test_cli_run_rule_with_error(tmp_path, run):
         raise_on_error=False,
     )
     assert process.returncode == 1
-    assert process.stderr.startswith(
-        f"gird: Error: Executing the rule of '{target}' caused an exception:"
-    )
+    assert process.stderr.startswith(f"gird: Error: Exception\nTraceback:\n")
 
     target = "target_with_error2"
     args2 = args + [target]
@@ -205,5 +203,5 @@ def test_cli_run_rule_with_error(tmp_path, run):
     )
     assert process.returncode == 1
     assert process.stderr.startswith(
-        f"gird: Error: Executing the rule of '{target}' caused an exception:"
+        f"gird: Error: Command 'exit 1' exited with error code 1.\nTraceback:\n"
     )

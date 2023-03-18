@@ -42,6 +42,18 @@ def print_message(message: str, use_stderr: bool = False):
     print(f"gird: {error_prefix}{message}", file=file, flush=True)
 
 
+def exit_on_exception(exception: Exception):
+    """Print error and exit program with error code."""
+    tback = "".join(
+        traceback.format_exception(type(exception), exception, exception.__traceback__)
+    )
+    print_message(
+        f"{exception}\nTraceback:\n{tback}",
+        use_stderr=True,
+    )
+    sys.exit(1)
+
+
 def parse_args_and_init() -> Tuple[
     List[Rule],
     Union[RunConfig, ListConfig],
@@ -95,13 +107,17 @@ def parse_args_and_init() -> Tuple[
     girdfile_arg: Optional[pathlib.Path] = args_init.girdfile
     girdfile_to_import: pathlib.Path = cwd_original / (girdfile_arg or "girdfile.py")
     os.chdir(girdfile_to_import.parent)
+    girdfile_str = os.path.relpath(girdfile_to_import, cwd_original)
 
     # Import Rules from girdfile.
+    girdfile_import_error = None
     try:
         rules = import_girdfile(girdfile_to_import)
-        girdfile_import_error = None
     except ImportError as e:
-        girdfile_import_error = ImportError(*e.args)
+        girdfile_import_error = ImportError(
+            f"Could not import girdfile '{girdfile_str}'."
+        )
+        girdfile_import_error.__cause__ = e
         rules = []
 
     def add_argument_help(parser):
@@ -115,7 +131,6 @@ def parse_args_and_init() -> Tuple[
     # Define --help here to be parsed after subparsers are completely defined.
     add_argument_help(group_options)
 
-    girdfile_str = os.path.relpath(girdfile_to_import, cwd_original)
     helptext_subparsers = "List all rules or run a single rule."
     if len(rules) > 0:
         targets_str = ", ".join(
@@ -209,8 +224,7 @@ def parse_args_and_init() -> Tuple[
 
     if girdfile_import_error is not None:
         if girdfile_arg is not None or subcommand == subcommand_list:
-            print_message(girdfile_import_error.args[0], use_stderr=True)
-            sys.exit(1)
+            exit_on_exception(girdfile_import_error)
 
     if len(rules) == 0 or subcommand is None:
         parser.print_help()
@@ -241,23 +255,6 @@ def parse_args_and_init() -> Tuple[
     return rules, config
 
 
-def exit_on_exception(exception: Exception, target: Target):
-    """Print error and exit program with error code."""
-    print(exception)
-    tback = "".join(
-        traceback.format_exception(type(exception), exception, exception.__traceback__)
-    )
-    print_message(
-        (
-            f"Executing the rule of '{format_target(target)}' caused an exception: {exception}\n"
-            f"Traceback:\n"
-            f"{tback}"
-        ),
-        use_stderr=True,
-    )
-    sys.exit(1)
-
-
 def run_rule(rules: Iterable[Rule], config: RunConfig):
     """Run a rule if its target is not up to date. Possibly exit the program.
 
@@ -271,7 +268,7 @@ def run_rule(rules: Iterable[Rule], config: RunConfig):
     try:
         rule_sorter = RuleSorter(rules, config.target)
     except Exception as e:
-        exit_on_exception(e, config.target)
+        exit_on_exception(e)
         raise
 
     is_target_outdated = rule_sorter.is_target_outdated()
@@ -291,7 +288,7 @@ def run_rule(rules: Iterable[Rule], config: RunConfig):
             output_sync=config.output_sync,
         )
     except Exception as e:
-        exit_on_exception(e, config.target)
+        exit_on_exception(e)
 
 
 def list_rules(
@@ -308,7 +305,7 @@ def list_rules(
             try:
                 rule_sorter = RuleSorter(rules, rule.target)
             except Exception as e:
-                exit_on_exception(e, rule.target)
+                exit_on_exception(e)
                 raise
 
             if rule_sorter.is_target_outdated() and not isinstance(rule.target, Phony):
