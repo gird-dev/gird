@@ -279,7 +279,7 @@ def run_rule(rules: Iterable[Rule], config: RunConfig):
         print_message(f"'{config.target}' is up to date.")
         sys.exit()
 
-    print_message(f"Executing the rule of '{config.target}'.")
+    print_message(f"Executing rule '{config.target}'.")
 
     try:
         run_rules(
