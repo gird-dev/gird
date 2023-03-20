@@ -176,8 +176,10 @@ def test_cli_unexisting_target(tmp_path, run):
         args,
         raise_on_error=False,
     )
-    assert process.returncode == 2
-    assert process.stderr.startswith(f"usage: gird [")
+    assert process.returncode == 1
+    assert process.stderr.startswith(
+        f"gird: Error: argument {{list, [run] target}}: invalid choice: '{target}'"
+    )
 
 
 def test_cli_run_rule_with_error(tmp_path, run):
@@ -192,7 +194,7 @@ def test_cli_run_rule_with_error(tmp_path, run):
         raise_on_error=False,
     )
     assert process.returncode == 1
-    assert process.stderr.startswith(f"gird: Error: Exception\nTraceback:\n")
+    assert process.stderr.startswith(f"gird: Error: Exception\n\n")
 
     target = "target_with_error2"
     args2 = args + [target]
@@ -203,5 +205,5 @@ def test_cli_run_rule_with_error(tmp_path, run):
     )
     assert process.returncode == 1
     assert process.stderr.startswith(
-        f"gird: Error: Command 'exit 1' exited with error code 1.\nTraceback:\n"
+        f"gird: Error: Command 'exit 1' exited with error code 1.\n\n"
     )

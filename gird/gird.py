@@ -48,7 +48,7 @@ def exit_on_exception(exception: Exception):
         traceback.format_exception(type(exception), exception, exception.__traceback__)
     )
     print_message(
-        f"{exception}\nTraceback:\n{tback}",
+        f"{exception}\n\n{tback}",
         use_stderr=True,
     )
     sys.exit(1)
@@ -72,6 +72,7 @@ def parse_args_and_init() -> Tuple[
         description="Gird - A Make-like build tool & task runner",
         add_help=False,
         formatter_class=argparse.RawTextHelpFormatter,
+        exit_on_error=False,
     )
 
     group_options = parser.add_argument_group(title="optional arguments")
@@ -101,7 +102,10 @@ def parse_args_and_init() -> Tuple[
         ),
     )
 
-    args_init, args_rest = parser.parse_known_args()
+    try:
+        args_init, args_rest = parser.parse_known_args()
+    except argparse.ArgumentError as e:
+        exit_on_exception(e)
 
     cwd_original = pathlib.Path.cwd()
     girdfile_arg: Optional[pathlib.Path] = args_init.girdfile
@@ -219,7 +223,14 @@ def parse_args_and_init() -> Tuple[
         )
         add_run_parser_arguments(subparser_rule)
 
-    args_rest = parser.parse_args(args_rest)
+    try:
+        args_rest = parser.parse_args(args_rest)
+    except argparse.ArgumentError as e:
+        if girdfile_import_error is not None:
+            exit_on_exception(girdfile_import_error)
+        else:
+            exit_on_exception(e)
+
     subcommand = args_rest.subcommand
 
     if girdfile_import_error is not None:
