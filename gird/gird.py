@@ -117,7 +117,7 @@ def parse_args_and_init() -> Tuple[
     girdfile_import_error = None
     try:
         rules = import_girdfile(girdfile_to_import)
-    except ImportError as e:
+    except (ImportError, ValueError) as e:
         girdfile_import_error = ImportError(
             f"Could not import girdfile '{girdfile_str}'."
         )

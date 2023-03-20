@@ -4,9 +4,9 @@ import importlib.util
 import os
 import pathlib
 import sys
-from typing import List, Optional
+from typing import List, Optional, Set
 
-from .common import Rule
+from .common import Rule, format_target
 
 
 class GirdfileContext:
@@ -15,15 +15,43 @@ class GirdfileContext:
     """
 
     def __init__(self):
-        self.rules: Optional[List[Rule]] = None
+        self._rules: Optional[List[Rule]] = None
+        self._targets_formatted: Optional[Set[str]] = None
 
     def __enter__(self):
-        if self.rules is not None:
+        if self._rules is not None:
             raise RuntimeError("This GirdfileContext is already active.")
-        self.rules = []
+        self._rules = []
+        self._targets_formatted = set()
 
     def __exit__(self, *args):
-        self.rules = None
+        self._rules = None
+        self._targets_formatted = None
+
+    def is_active(self) -> bool:
+        """Is this GirdfileContext active, i.e., can Rules be added with add_rule()."""
+        return self._rules is not None
+
+    def add_rule(self, rule: Rule):
+        """Register a Rule with this GirdfileContext. Raise a ValueError if the
+        Rule can't be added, and a RuntimeError if the GirdfileContext is not
+        active.
+        """
+        if self._rules is not None:
+            target_formatted = format_target(rule.target)
+            if target_formatted in self._targets_formatted:
+                raise ValueError(
+                    f"A Rule with the target name '{target_formatted}' has "
+                    "already been registered."
+                )
+            self._rules.append(rule)
+            self._targets_formatted.add(target_formatted)
+        else:
+            raise RuntimeError(f"This {type(self).__name__} is not active.")
+
+    def get_rules(self) -> Optional[List[Rule]]:
+        """Get the Rules registered with this GirdfileContext."""
+        return self._rules
 
 
 # GirdfileContext instance to be activated when importing a girdfile.py.
@@ -48,5 +76,5 @@ def import_girdfile(girdfile_path: pathlib.Path) -> List[Rule]:
     sys.path.append(str(pathlib.Path(girdfile_path.parent).resolve()))
     with GIRDFILE_CONTEXT:
         spec.loader.exec_module(module)
-        rules = GIRDFILE_CONTEXT.rules
+        rules = GIRDFILE_CONTEXT.get_rules()
     return rules

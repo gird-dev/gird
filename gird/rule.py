@@ -173,7 +173,7 @@ def rule(
         listed=listed,
     )
 
-    if GIRDFILE_CONTEXT.rules is not None:
-        GIRDFILE_CONTEXT.rules.append(rule)
+    if GIRDFILE_CONTEXT.is_active():
+        GIRDFILE_CONTEXT.add_rule(rule)
 
     return rule
