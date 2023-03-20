@@ -1,8 +1,8 @@
 """Code for defining rules."""
+import pathlib
+from typing import Callable, Iterable, Optional, Union
 
-from typing import Iterable, Optional, Union
-
-from .common import Dependency, Rule, SubRecipe, Target
+from .common import Dependency, Phony, Rule, SubRecipe, Target
 from .girdfile import GIRDFILE_CONTEXT
 
 
@@ -147,10 +147,18 @@ def rule(
     >>>     for source in [JSON1, JSON2]
     >>> ]
     """
+    if not isinstance(target, (pathlib.Path, Phony)):
+        raise TypeError(f"Invalid target type: '{target}'.")
+
     # Turn deps into tuple of Path or Phony instances, not Rules.
     if deps is not None:
         if not isinstance(deps, Iterable):
             deps = [deps]
+
+        for dep in deps:
+            if not isinstance(dep, (pathlib.Path, Rule, Callable)):
+                raise TypeError(f"Invalid deps type: '{dep}'.")
+
         deps_unruly = []
         for dep in deps:
             if isinstance(dep, Rule):
@@ -162,6 +170,11 @@ def rule(
     if recipe is not None:
         if not isinstance(recipe, Iterable) or isinstance(recipe, str):
             recipe = [recipe]
+
+        for subrecipe in recipe:
+            if not isinstance(subrecipe, (str, Callable)):
+                raise TypeError(f"Invalid recipe type: '{subrecipe}'.")
+
         recipe = tuple(recipe)
 
     rule = Rule(
