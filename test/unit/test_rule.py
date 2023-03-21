@@ -13,7 +13,7 @@ def test_types():
     with pytest.raises(TypeError, match="Invalid target type: 'target'"):
         rule(target="target")
 
-    dummy_rule_dep = rule(target=Phony("target"))
+    dummy_rule_dep = rule(target=Phony("dep"))
 
     def dummy_function_dep():
         return False
@@ -21,10 +21,12 @@ def test_types():
     rule(target=Phony("target"), deps=None)
 
     rule(target=Phony("target"), deps=pathlib.Path("dep"))
+    rule(target=Phony("target"), deps=Phony("dep"))
     rule(target=Phony("target"), deps=dummy_rule_dep)
     rule(target=Phony("target"), deps=dummy_function_dep)
 
     rule(target=Phony("target"), deps=[pathlib.Path("dep")])
+    rule(target=Phony("target"), deps=[Phony("dep")])
     rule(target=Phony("target"), deps=[dummy_rule_dep])
     rule(target=Phony("target"), deps=[dummy_function_dep])
 

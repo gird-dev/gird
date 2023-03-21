@@ -7,8 +7,8 @@ from typing import Any, Callable, Optional, Tuple, Union
 
 # Type aliases
 Target = Union[pathlib.Path, "Phony"]
-Dependency = Union[pathlib.Path, "Rule", Callable[[], bool]]
 DependencyInternal = Union[pathlib.Path, "Phony", Callable[[], bool]]
+Dependency = Union[DependencyInternal, "Rule"]
 SubRecipe = Union[str, Callable[[], Any]]
 
 

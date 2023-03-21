@@ -156,7 +156,7 @@ def rule(
             deps = [deps]
 
         for dep in deps:
-            if not isinstance(dep, (pathlib.Path, Rule, Callable)):
+            if not isinstance(dep, (pathlib.Path, Phony, Rule, Callable)):
                 raise TypeError(f"Invalid deps type: '{dep}'.")
 
         deps_unruly = []
