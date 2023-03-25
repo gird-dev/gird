@@ -131,7 +131,7 @@ test
     - Check that README.md is updated based on README_template.md.
 README.md
     Render README.md based on README_template.md.
-dist/gird-1.7.0-py3-none-any.whl
+dist/gird-2.0.0-py3-none-any.whl
     Build distribution packages for the current version.
 publish
     Publish packages of the current version to PyPI.
