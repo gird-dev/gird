@@ -98,6 +98,17 @@ def build_target_graph(
                         rule_is_outdated |= dep_is_outdated
 
                         dep = dep.target
+                    elif isinstance(dep, Phony):
+                        raise TypeError(
+                            f"Phony target '{format_target(dep)}' of no rule "
+                            "used as a dependency."
+                        )
+                    elif isinstance(dep, pathlib.Path) and not dep.exists():
+                        raise RuntimeError(
+                            f"Nonexistent file '{dep}' used as a dependency "
+                            f"is not the target of any rule."
+                        )
+
                     if (
                         isinstance(rule.target, pathlib.Path)
                         and isinstance(dep, pathlib.Path)
