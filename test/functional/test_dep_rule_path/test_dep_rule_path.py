@@ -4,9 +4,11 @@ TEST_DIR = pathlib.Path(__file__).parent
 
 
 def test_dep_rule_path(tmp_path, run_rule):
-    """Test that a recipe is not run if the Path target of a Rule dependency is
-    not updated after the target is created, and that the recipe is run if the
-    dependency is updated.
+    """Test that the recipe of a Rule with a Rule dependency, that has a Path
+    as its target,
+    - is not run if the Path target of a Rule dependency is not updated after
+      the target is created, and
+    - is run if the dependency is updated.
     """
     path_dep = tmp_path / "dep"
     path_target = tmp_path / "target"
