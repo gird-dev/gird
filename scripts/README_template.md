@@ -9,11 +9,11 @@ runner for Python.
 
 ### Example use cases
 
-- Data science & data analytics pipelines.
+- Data science & data analytics workflows.
 - Portable CI tasks.
 - Less rule-heavy application build setups. (Build times may become noticeable
   with thousands of rules.)
-- Any project where some tasks need to be executed automatically when some
+- Any project where tasks need to be executed automatically when some
   dependencies are updated.
 
 ### Features
