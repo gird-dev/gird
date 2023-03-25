@@ -155,6 +155,9 @@ def rule(
         if not isinstance(deps, Iterable):
             deps = [deps]
 
+        # Ensure deps is not a single-pass Iterator.
+        deps = list(deps)
+
         for dep in deps:
             if not isinstance(dep, (pathlib.Path, Phony, Rule, Callable)):
                 raise TypeError(f"Invalid deps type: '{dep}'.")
@@ -170,6 +173,9 @@ def rule(
     if recipe is not None:
         if not isinstance(recipe, Iterable) or isinstance(recipe, str):
             recipe = [recipe]
+
+        # Ensure recipe is not a single-pass Iterator.
+        recipe = list(recipe)
 
         for subrecipe in recipe:
             if not isinstance(subrecipe, (str, Callable)):
