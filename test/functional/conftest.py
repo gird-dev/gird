@@ -2,8 +2,14 @@ import os
 import pathlib
 import shutil
 import subprocess
+import time
 
 import pytest
+
+from gird.common import format_target
+from gird.gird import RunConfig, SubcommandResult
+from gird.gird import run_rule as gird_run_rule
+from gird.girdfile import import_girdfile
 
 
 @pytest.fixture
@@ -61,18 +67,50 @@ def run():
     return _run
 
 
+def _init_tmp_path(
+    pytest_tmp_path: pathlib.Path,
+    test_dir: pathlib.Path,
+) -> pathlib.Path:
+    """Initialize pytest tmp_path for Gird, i.e., copy girdfile from test_dir
+    to pytest_tmp_path.
+
+    Parameters
+    ----------
+    pytest_tmp_path
+        pytest's tmp_path fixture
+    test_dir
+        Test directory with girdfile.py
+
+    Returns
+    -------
+    girdfile_path
+        Path of a copied girdfile.py to be used by Gird.
+    """
+    path_girdfile_original = test_dir / "girdfile.py"
+    # Use a unique name for the girdfile because the multiprocessing library
+    # may get confused on some environments if names must be imported from
+    # multiple modules with the same name.
+    path_girdfile = pytest_tmp_path / f"girdfile_{test_dir.name}.py"
+    shutil.copy(path_girdfile_original, path_girdfile)
+    return path_girdfile
+
+
+@pytest.fixture
+def init_tmp_path():
+    return _init_tmp_path
+
+
 @pytest.fixture
 def run_rule(run):
     def _run_rule(
         pytest_tmp_path: pathlib.Path,
         test_dir: pathlib.Path,
-        rule: str,
-        raise_on_error: bool = True,
+        target: str,
         dry_run: bool = False,
         question: bool = False,
         output_sync: bool = False,
-    ) -> subprocess.CompletedProcess:
-        """Run a rule with Gird.
+    ) -> SubcommandResult:
+        """Import Rules from a girdfile and run one of them.
 
         Parameters
         ----------
@@ -82,46 +120,47 @@ def run_rule(run):
             Original test directory with girdfile.py. If the directory also
             contains files named Makefile1 & Makefile2, those will be compared
             to the Makefiles produced by Gird.
-        rule
-            The rule to be run.
-        parallelism
-            Parallelism state.
+        target
+            The formatted target of the rule to be run, i.e., as it would be
+            given in the CLI.
         dry_run
-            Run Gird with '--dry-run'.
+            See CLI argument '--dry-run'.
         question
-            Run Gird with '--question'.
+            See CLI argument '--question'.
         """
-        # Copy girdfile.py to pytest_tmp_path.
-        path_girdfile_original = test_dir / "girdfile.py"
-        # Use a unique name for the girdfile because the multiprocessing library
-        # may get confused on some environments if names must be imported from
-        # multiple modules with the same name.
-        path_girdfile = pytest_tmp_path / f"girdfile_{test_dir.name}.py"
-        shutil.copy(path_girdfile_original, path_girdfile)
-
-        args = [
-            "gird",
-            "--girdfile",
-            str(path_girdfile.resolve()),
-        ]
-
-        if output_sync:
-            args.append("--output-sync")
-
-        args.append(rule)
-
-        if dry_run:
-            args.append("--dry-run")
-
-        if question:
-            args.append("--question")
-
-        process = run(
-            pytest_tmp_path,
-            args,
-            raise_on_error=raise_on_error,
+        girdfile = _init_tmp_path(
+            pytest_tmp_path=pytest_tmp_path,
+            test_dir=test_dir,
         )
 
-        return process
+        os.chdir(pytest_tmp_path)
+
+        rules = import_girdfile(girdfile)
+
+        for rule in rules:
+            if target == format_target(rule.target):
+                target = rule.target
+                break
+        else:
+            raise ValueError(f"Target '{target}' not defined in '{girdfile}'.")
+
+        run_config = RunConfig(
+            target=target,
+            verbose=False,
+            question=question,
+            dry_run=dry_run,
+            output_sync=output_sync,
+        )
+
+        result = gird_run_rule(
+            rules,
+            run_config,
+        )
+
+        # Wait to make sure targets created by different calls get different
+        # timestamps.
+        time.sleep(0.001)
+
+        return result
 
     return _run_rule

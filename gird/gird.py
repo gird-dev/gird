@@ -2,6 +2,7 @@
 
 import argparse
 import dataclasses
+import enum
 import os
 import pathlib
 import sys
@@ -33,6 +34,15 @@ class ListConfig:
     all: bool
 
 
+class SubcommandResult(enum.Enum):
+    """Result values of the run_rule & list functions."""
+
+    OK = enum.auto()
+    QUESTION_OUTDATED = enum.auto()
+    QUESTION_UPTODATE = enum.auto()
+    RUN_UNNECESSARY = enum.auto()
+
+
 def print_message(message: str, use_stderr: bool = False):
     """Print message about, e.g., rule's execution progress. If use_stderr=True,
     use sys.stderr instead of sys.stdout.
@@ -54,12 +64,23 @@ def exit_on_exception(exception: Exception):
     sys.exit(1)
 
 
+def exit_with_result(result: SubcommandResult):
+    """Exit the program with an exit code based on SubcommandResult value."""
+    if result == SubcommandResult.QUESTION_UPTODATE:
+        exit(0)
+    elif result == SubcommandResult.QUESTION_OUTDATED:
+        exit(1)
+    else:
+        exit(0)
+
+
 def parse_args_and_init() -> Tuple[
     List[Rule],
     Union[RunConfig, ListConfig],
 ]:
     """Parse CLI arguments, import rules from a girdfile, and change current
-    working directory to the directory with the girdfile.
+    working directory to the directory with the girdfile. Exit the program if no
+    further processing is needed.
 
     Returns
     -------
@@ -102,10 +123,7 @@ def parse_args_and_init() -> Tuple[
         ),
     )
 
-    try:
-        args_init, args_rest = parser.parse_known_args()
-    except argparse.ArgumentError as e:
-        exit_on_exception(e)
+    args_init, args_rest = parser.parse_known_args()
 
     cwd_original = pathlib.Path.cwd()
     girdfile_arg: Optional[pathlib.Path] = args_init.girdfile
@@ -124,8 +142,8 @@ def parse_args_and_init() -> Tuple[
         girdfile_import_error.__cause__ = e
         rules = []
 
-    def add_argument_help(parser):
-        parser.add_argument(
+    def add_argument_help(helpless_parser):
+        helpless_parser.add_argument(
             "-h",
             "--help",
             action="help",
@@ -183,9 +201,9 @@ def parse_args_and_init() -> Tuple[
 
     add_argument_help(parser_list)
 
-    def add_run_parser_arguments(parser):
+    def add_run_parser_arguments(run_parser):
         """Add arguments for a parser with run functionality."""
-        parser.add_argument(
+        run_parser.add_argument(
             "--dry-run",
             action="store_true",
             help=(
@@ -194,7 +212,7 @@ def parse_args_and_init() -> Tuple[
             ),
         )
 
-        parser.add_argument(
+        run_parser.add_argument(
             "-q",
             "--question",
             action="store_true",
@@ -205,7 +223,7 @@ def parse_args_and_init() -> Tuple[
             ),
         )
 
-        add_argument_help(parser)
+        add_argument_help(run_parser)
 
     subparser_run = subparsers.add_parser(
         subcommand_run,
@@ -227,15 +245,15 @@ def parse_args_and_init() -> Tuple[
         args_rest = parser.parse_args(args_rest)
     except argparse.ArgumentError as e:
         if girdfile_import_error is not None:
-            exit_on_exception(girdfile_import_error)
+            raise girdfile_import_error
         else:
-            exit_on_exception(e)
+            raise e
 
     subcommand = args_rest.subcommand
 
     if girdfile_import_error is not None:
         if girdfile_arg is not None or subcommand == subcommand_list:
-            exit_on_exception(girdfile_import_error)
+            raise girdfile_import_error
 
     if len(rules) == 0 or subcommand is None:
         parser.print_help()
@@ -266,8 +284,8 @@ def parse_args_and_init() -> Tuple[
     return rules, config
 
 
-def run_rule(rules: Iterable[Rule], config: RunConfig):
-    """Run a rule if its target is not up to date. Possibly exit the program.
+def run_rule(rules: Iterable[Rule], config: RunConfig) -> SubcommandResult:
+    """Run a rule if its target is not up to date.
 
     Parameters
     ----------
@@ -276,48 +294,42 @@ def run_rule(rules: Iterable[Rule], config: RunConfig):
     config
         Run configuration.
     """
-    try:
-        rule_sorter = RuleSorter(rules, config.target)
-    except Exception as e:
-        exit_on_exception(e)
-        raise
+    rule_sorter = RuleSorter(rules, config.target)
 
     is_target_outdated = rule_sorter.is_target_outdated()
 
     if config.question:
-        sys.exit(int(is_target_outdated))
+        if is_target_outdated:
+            result = SubcommandResult.QUESTION_OUTDATED
+        else:
+            result = SubcommandResult.QUESTION_UPTODATE
     elif not is_target_outdated:
         print_message(f"'{config.target}' is up to date.")
-        sys.exit()
-
-    print_message(f"Executing rule '{config.target}'.")
-
-    try:
+        result = SubcommandResult.RUN_UNNECESSARY
+    else:
+        print_message(f"Executing rule '{config.target}'.")
         run_rules(
             rule_sorter,
             dry_run=config.dry_run,
             output_sync=config.output_sync,
         )
-    except Exception as e:
-        exit_on_exception(e)
+        result = SubcommandResult.OK
+
+    return result
 
 
 def list_rules(
     rules: Iterable[Rule],
     config: ListConfig,
-):
-    """List rules. Possibly exit the program."""
+) -> SubcommandResult:
+    """List rules."""
     parts = []
     for rule in rules:
         if not rule.listed and not config.all:
             continue
 
         if config.question:
-            try:
-                rule_sorter = RuleSorter(rules, rule.target)
-            except Exception as e:
-                exit_on_exception(e)
-                raise
+            rule_sorter = RuleSorter(rules, rule.target)
 
             if rule_sorter.is_target_outdated() and not isinstance(rule.target, Phony):
                 indent_target = "* "
@@ -336,10 +348,25 @@ def list_rules(
             )
     print("\n".join(parts))
 
+    return SubcommandResult.OK
+
 
 def main():
-    rules, config = parse_args_and_init()
+    try:
+        rules, config = parse_args_and_init()
+    except Exception as e:
+        exit_on_exception(e)
+        raise
+
     if isinstance(config, RunConfig):
-        run_rule(rules, config)
+        func = run_rule
     else:
-        list_rules(rules, config)
+        func = list_rules
+
+    try:
+        result = func(rules, config)
+    except Exception as e:
+        exit_on_exception(e)
+        raise
+
+    exit_with_result(result)

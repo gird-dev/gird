@@ -1,5 +1,7 @@
 import pathlib
 
+import pytest
+
 TEST_DIR = pathlib.Path(__file__).parent
 
 
@@ -12,7 +14,7 @@ def test_dep_rule_phony(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     mtime_first = path_target.stat().st_mtime_ns
@@ -20,7 +22,7 @@ def test_dep_rule_phony(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     mtime_second = path_target.stat().st_mtime_ns
@@ -32,14 +34,12 @@ def test_dep_rule_phony_no_rule(tmp_path, run_rule):
     """Test that using a Phony object, that is not the target of a Rule, as a
     dependency causes an Error.
     """
-    process = run_rule(
-        pytest_tmp_path=tmp_path,
-        test_dir=TEST_DIR,
-        rule="target_no_rule",
-        raise_on_error=False,
-    )
-
-    assert process.returncode == 1
-    assert process.stderr.startswith(
-        "gird: Error: Phony target 'phony_no_rule' of no rule used as a dependency."
-    )
+    with pytest.raises(
+        TypeError,
+        match="Phony target 'phony_no_rule' of no rule used as a dependency.",
+    ):
+        run_rule(
+            pytest_tmp_path=tmp_path,
+            test_dir=TEST_DIR,
+            target="target_no_rule",
+        )

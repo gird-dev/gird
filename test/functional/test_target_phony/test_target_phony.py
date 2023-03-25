@@ -12,7 +12,7 @@ def test_target_phony(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     mtime_first = path_result.stat().st_mtime_ns
@@ -20,7 +20,7 @@ def test_target_phony(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     mtime_second = path_result.stat().st_mtime_ns

@@ -1,5 +1,7 @@
 import pathlib
 
+import pytest
+
 TEST_DIR = pathlib.Path(__file__).parent
 
 
@@ -18,7 +20,7 @@ def test_dep_path(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     mtime_first = path_target.stat().st_mtime_ns
@@ -26,7 +28,7 @@ def test_dep_path(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     mtime_second = path_target.stat().st_mtime_ns
@@ -38,7 +40,7 @@ def test_dep_path(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     mtime_third = path_target.stat().st_mtime_ns
@@ -50,15 +52,12 @@ def test_dep_path_nonexistent(tmp_path, run_rule):
     """Test that running the Rule with a Path dependency, that is not the
     target of another rule, raises an Error if the dependency doesn't exist.
     """
-    process = run_rule(
-        pytest_tmp_path=tmp_path,
-        test_dir=TEST_DIR,
-        rule="target",
-        raise_on_error=False,
-    )
-
-    assert process.returncode == 1
-    assert process.stderr.startswith(
-        "gird: Error: Nonexistent file 'dep' used as a dependency is not the "
-        "target of any rule."
-    )
+    with pytest.raises(
+        RuntimeError,
+        match="Nonexistent file 'dep' used as a dependency is not the target of any rule.",
+    ):
+        run_rule(
+            pytest_tmp_path=tmp_path,
+            test_dir=TEST_DIR,
+            target="target",
+        )

@@ -15,7 +15,7 @@ def test_target_path_with_dep(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_with_dep",
+        target="target_with_dep",
     )
 
     mtime_first = path_target.stat().st_mtime_ns
@@ -23,7 +23,7 @@ def test_target_path_with_dep(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_with_dep",
+        target="target_with_dep",
     )
 
     mtime_second = path_target.stat().st_mtime_ns
@@ -35,7 +35,7 @@ def test_target_path_with_dep(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_with_dep",
+        target="target_with_dep",
     )
 
     mtime_third = path_target.stat().st_mtime_ns
@@ -53,7 +53,7 @@ def test_target_path_without_dep(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_without_dep",
+        target="target_without_dep",
     )
 
     assert path_target.exists()
@@ -63,7 +63,7 @@ def test_target_path_without_dep(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_without_dep",
+        target="target_without_dep",
     )
 
     mtime_second = path_target.stat().st_mtime_ns

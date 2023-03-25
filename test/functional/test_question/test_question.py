@@ -1,5 +1,7 @@
 import pathlib
 
+from gird.gird import SubcommandResult
+
 TEST_DIR = pathlib.Path(__file__).parent
 
 
@@ -11,43 +13,35 @@ def test_question(tmp_path, run_rule):
 
     # Test that the result doesn't change by doing twice.
     for _ in range(2):
-        process = run_rule(
+        result = run_rule(
             pytest_tmp_path=tmp_path,
             test_dir=TEST_DIR,
-            rule="target",
-            raise_on_error=False,
+            target="target",
             question=True,
         )
 
-        assert process.returncode == 1
-        assert process.stdout == ""
+        assert result == SubcommandResult.QUESTION_OUTDATED
 
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
-    process = run_rule(
+    result = run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
         question=True,
     )
 
-    assert process.returncode == 0
-    assert process.stdout == ""
+    assert result == SubcommandResult.QUESTION_UPTODATE
 
     # Run once more without --question.
-    process = run_rule(
+    result = run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
-    assert process.returncode == 0
-    assert (
-        process.stdout.strip()
-        .split("\n")[-1]
-        .startswith("gird: 'target' is up to date.")
-    )
+    assert result == SubcommandResult.RUN_UNNECESSARY

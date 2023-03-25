@@ -16,7 +16,7 @@ def test_dep_rule_path(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     mtime_first = path_target.stat().st_mtime_ns
@@ -24,7 +24,7 @@ def test_dep_rule_path(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     mtime_second = path_target.stat().st_mtime_ns
@@ -36,7 +36,7 @@ def test_dep_rule_path(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     mtime_third = path_target.stat().st_mtime_ns

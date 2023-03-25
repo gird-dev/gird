@@ -24,7 +24,7 @@ def test_graph(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target5",
+        target="target5",
     )
 
     mtime_target1_second = target1.stat().st_mtime_ns

@@ -9,15 +9,22 @@ def get_times(path: pathlib.Path) -> Set[float]:
     return set(round(float(line), 1) for line in path.read_text().strip().split("\n"))
 
 
-def test_parallel(tmp_path, run_rule):
+def test_parallel(tmp_path, run, init_tmp_path):
     """Test that a recipe is by default run in parallel with recipes of other
     rules.
     """
-    process = run_rule(
-        pytest_tmp_path=tmp_path,
-        test_dir=TEST_DIR,
-        rule="parallel",
-        output_sync=False,
+    girdfile = init_tmp_path(pytest_tmp_path=tmp_path, test_dir=TEST_DIR)
+
+    args = [
+        "gird",
+        "--girdfile",
+        str(girdfile.resolve()),
+        "parallel",
+    ]
+
+    run(
+        tmp_path,
+        args,
     )
 
     target1 = tmp_path / "target1"
@@ -37,15 +44,23 @@ def test_parallel(tmp_path, run_rule):
     #     assert f"{target.name} time0.\n{target.name} time1.\n" not in process.stdout
 
 
-def test_parallel_output_sync(tmp_path, run_rule):
+def test_parallel_output_sync(tmp_path, run, init_tmp_path):
     """Test that the output of a recipe is buffered with the "--output-sync" CLI
     argument.
     """
-    process = run_rule(
-        pytest_tmp_path=tmp_path,
-        test_dir=TEST_DIR,
-        rule="parallel",
-        output_sync=True,
+    girdfile = init_tmp_path(pytest_tmp_path=tmp_path, test_dir=TEST_DIR)
+
+    args = [
+        "gird",
+        "--girdfile",
+        str(girdfile.resolve()),
+        "--output-sync",
+        "parallel",
+    ]
+
+    process = run(
+        tmp_path,
+        args,
     )
 
     target1 = tmp_path / "target1"
@@ -62,15 +77,22 @@ def test_parallel_output_sync(tmp_path, run_rule):
         assert f"{target.name} time0.\n{target.name} time1.\n" in process.stdout
 
 
-def test_parallel_off(tmp_path, run_rule):
+def test_parallel_off(tmp_path, run, init_tmp_path):
     """Test that a recipe is not run in parallel with recipes of other rules
     when parallel=False.
     """
+    girdfile = init_tmp_path(pytest_tmp_path=tmp_path, test_dir=TEST_DIR)
 
-    process = run_rule(
-        pytest_tmp_path=tmp_path,
-        test_dir=TEST_DIR,
-        rule="serial",
+    args = [
+        "gird",
+        "--girdfile",
+        str(girdfile.resolve()),
+        "serial",
+    ]
+
+    process = run(
+        tmp_path,
+        args,
     )
 
     target3 = tmp_path / "target3"

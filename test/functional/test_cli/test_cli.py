@@ -166,6 +166,25 @@ def test_cli_target(tmp_path, run):
     assert path_target.exists()
 
 
+def test_cli_run_unnecessary(tmp_path, run):
+    """Test running a rule target of which is already up to date."""
+    path_target = tmp_path / "run_dir" / "target"
+
+    args = init_cli_test(tmp_path)
+    args.extend(["run", "target"])
+    run(
+        tmp_path,
+        args,
+    )
+
+    process = run(
+        tmp_path,
+        args,
+    )
+
+    assert process.stdout == "gird: 'target' is up to date.\n"
+
+
 def test_cli_unexisting_target(tmp_path, run):
     """Test functionality with nonexistent target given as argument."""
     args = init_cli_test(tmp_path)
@@ -207,3 +226,32 @@ def test_cli_run_rule_with_error(tmp_path, run):
     assert process.stderr.startswith(
         f"gird: Error: Command 'exit 1' exited with error code 1.\n\n"
     )
+
+
+def test_cli_question(tmp_path, run):
+    """Test the CLI argument '--question'."""
+    args = init_cli_test(tmp_path)
+    args.extend(["target", "--question"])
+    process = run(
+        tmp_path,
+        args,
+        raise_on_error=False,
+    )
+
+    path_target = tmp_path / "run_dir" / "target"
+    assert not path_target.exists()
+
+    assert process.returncode == 1
+    assert process.stdout == ""
+    assert process.stderr == ""
+
+    path_target.touch()
+
+    process = run(
+        tmp_path,
+        args,
+    )
+
+    assert process.returncode == 0
+    assert process.stdout == ""
+    assert process.stderr == ""

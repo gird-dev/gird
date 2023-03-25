@@ -13,7 +13,7 @@ def test_recipe_compound(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target",
+        target="target",
     )
 
     assert path_target.exists()

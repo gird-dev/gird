@@ -16,7 +16,7 @@ def test_dep_compound_false(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_false",
+        target="target_false",
     )
 
     mtime_first = path_target.stat().st_mtime_ns
@@ -24,7 +24,7 @@ def test_dep_compound_false(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_false",
+        target="target_false",
     )
 
     mtime_second = path_target.stat().st_mtime_ns
@@ -36,7 +36,7 @@ def test_dep_compound_false(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_false",
+        target="target_false",
     )
 
     mtime_third = path_target.stat().st_mtime_ns
@@ -46,7 +46,7 @@ def test_dep_compound_false(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_false",
+        target="target_false",
     )
 
     mtime_fourth = path_target.stat().st_mtime_ns
@@ -58,7 +58,7 @@ def test_dep_compound_false(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_false",
+        target="target_false",
     )
 
     mtime_fifth = path_target.stat().st_mtime_ns
@@ -68,7 +68,7 @@ def test_dep_compound_false(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_false",
+        target="target_false",
     )
 
     mtime_sixth = path_target.stat().st_mtime_ns
@@ -88,7 +88,7 @@ def test_dep_compound_true(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_true",
+        target="target_true",
     )
 
     mtime_first = path_target.stat().st_mtime_ns
@@ -96,7 +96,7 @@ def test_dep_compound_true(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule="target_true",
+        target="target_true",
     )
 
     mtime_second = path_target.stat().st_mtime_ns

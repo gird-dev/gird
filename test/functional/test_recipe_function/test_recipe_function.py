@@ -10,7 +10,7 @@ def test_recipe_function(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule=path_target.name,
+        target=path_target.name,
     )
 
     assert path_target.exists()
@@ -25,7 +25,7 @@ def test_recipe_function_partial(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule=path_target.name,
+        target=path_target.name,
     )
 
     assert path_target.exists()
@@ -40,7 +40,7 @@ def test_recipe_function_local(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule=path_target.name,
+        target=path_target.name,
     )
 
     assert path_target.exists()
@@ -55,7 +55,7 @@ def test_recipe_function_lambda(tmp_path, run_rule):
     run_rule(
         pytest_tmp_path=tmp_path,
         test_dir=TEST_DIR,
-        rule=path_target.name,
+        target=path_target.name,
     )
 
     assert path_target.exists()
