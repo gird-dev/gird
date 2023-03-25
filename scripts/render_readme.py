@@ -44,7 +44,14 @@ def get_readme_example_rules() -> str:
             lines_formatted.insert(0, "```python")
             lines_formatted.append("```")
         elif len(items_formatted) == 0 or items_formatted[-1].startswith("```python"):
-            lines_formatted = ["#### " + " ".join(lines_raw)]
+            lines_raw_joined = " ".join(lines_raw)
+            header, *rest = lines_raw_joined.split(". ")
+            if header.endswith("."):
+                header = header[:-1]
+            rest = ". ".join(rest)
+            lines_formatted = [f"#### {header}"]
+            if rest:
+                lines_formatted.extend(["", rest])
         else:
             lines_formatted = lines_raw
         item_formatted = "\n".join(lines_formatted)

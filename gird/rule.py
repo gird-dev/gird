@@ -1,4 +1,4 @@
-"""Code for defining rules."""
+"""The rule function."""
 import pathlib
 from typing import Callable, Iterable, Optional, Union
 
@@ -33,7 +33,7 @@ def rule(
     deps
         Dependencies of the target.
     recipe
-        Recipe to update the target.
+        Recipe to update the target. Strings will be executed as shell commands.
     help
         Helptext/description of the rule.
     parallel
@@ -42,13 +42,28 @@ def rule(
     listed
         Include the rule in 'gird list'.
 
+    Notes
+    -----
+
+    When invoked, a rule will be run if its target is considered outdated. This
+    is the case if the rule
+    1) has a Phony target,
+    2) has a Path target that does not exist,
+    5) has a Path target and a Path dependency that has been modified more recently than the target,
+    4) has an outdated target or an outdated Rule as a dependency, or
+    3) has a function dependency that returns True.
+
+    Rules with outdated targets are run in topological order, i.e., all
+    dependencies are updated before the respective targets.
+
+    Functions used as recipes need to be picklable when used in rules defined
+    with `parallel=True` (default). I.e., Lambda functions and locally defined
+    functions require `parallel=False`.
+
     Examples
     --------
 
     A rule with files as its target & dependency.
-
-    When the rule is invoked, the recipe is executed only if the dependency file
-    has been or will be updated, or if the target file doesn't exist.
 
     >>> import pathlib
     >>> import gird
@@ -62,17 +77,14 @@ def rule(
 
     A rule with a phony target (not a file).
 
-    The rule is always executed when invoked.
-
     >>> RULE_TEST = gird.rule(
     >>>     target=gird.Phony("test"),
     >>>     deps=WHEEL,
     >>>     recipe="pytest",
     >>> )
 
-    A rule with other rules as dependencies.
-
-    Group multiple rules together, and set the order of execution between rules.
+    A rule with other rules as dependencies. Group multiple rules together, and
+    set the order of execution between rules.
 
     >>> gird.rule(
     >>>     target=gird.Phony("all"),
@@ -82,12 +94,8 @@ def rule(
     >>>     ],
     >>> )
 
-    A rule with a Python function recipe.
-
-    To parameterize a function recipe for reusability, use, e.g.,
-    `functools.partial`. Functions need to be picklable when used in rules
-    defined with `parallel=True` (default). I.e., Lambda functions and locally
-    defined functions require `parallel=False`.
+    A rule with a Python function recipe. To parameterize a function recipe for
+    reusability, use, e.g., `functools.partial`.
 
     >>> import json
     >>> import functools
@@ -110,9 +118,8 @@ def rule(
     >>>     parallel=True,
     >>> )
 
-    A Python function as a dependency to arbitrarily trigger rules.
-
-    Below, have a local file re-fetched if a remote version is updated.
+    A Python function as a dependency to arbitrarily trigger rules. Below, have
+    a remote file re-fetched if it has been updated.
 
     >>> def is_remote_newer():
     >>>     return get_timestamp_local() < get_timestamp_remote()
@@ -123,7 +130,7 @@ def rule(
     >>>     recipe=fetch_remote,
     >>> )
 
-    Compound recipes for, e.g., setup & teardown.
+    Compound recipes for mixing shell commands with Python functions.
 
     >>> gird.rule(
     >>>     target=JSON1,
@@ -133,7 +140,7 @@ def rule(
     >>>     ],
     >>> )
 
-    Flexible rule definition with, e.g., loops or in-line nesting.
+    Flexible rule definition with loops and other constructs.
 
     >>> RULES = [
     >>>     gird.rule(

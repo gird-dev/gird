@@ -8,15 +8,6 @@ runner for Python.
 
 [make]: https://en.wikipedia.org/wiki/Make_(software)
 
-### Example use cases
-
-- Data science & data analytics workflows.
-- Portable CI tasks.
-- Less rule-heavy application build setups. (Build times may become noticeable
-  with thousands of rules.)
-- Any project where tasks need to be executed automatically when some
-  dependencies are updated.
-
 ### Features
 
 - A simple, expressive, and intuitive rule definition and execution scheme very
@@ -26,6 +17,15 @@ runner for Python.
 - Ability to take advantage of Python's flexibility and possibility to easily
   integrate with Python libraries and tools.
 - Emphasis on API simplicity & ease of use.
+
+### Example use cases
+
+- Data science & data analytics workflows.
+- Portable CI tasks.
+- Less rule-heavy application build setups. (Build time overhead may become
+  noticeable with thousands of rules.)
+- Any project with tasks that need to be executed automatically when some
+  dependencies are updated.
 
 ## Installation
 
@@ -139,10 +139,7 @@ publish
 
 ### Example rules
 
-#### A rule with files as its target & dependency.
-
-When the rule is invoked, the recipe is executed only if the dependency file
-has been or will be updated, or if the target file doesn't exist.
+#### A rule with files as its target & dependency
 
 ```python
 import pathlib
@@ -156,9 +153,7 @@ RULE_BUILD = gird.rule(
 )
 ```
 
-#### A rule with a phony target (not a file).
-
-The rule is always executed when invoked.
+#### A rule with a phony target (not a file)
 
 ```python
 RULE_TEST = gird.rule(
@@ -168,7 +163,7 @@ RULE_TEST = gird.rule(
 )
 ```
 
-#### A rule with other rules as dependencies.
+#### A rule with other rules as dependencies
 
 Group multiple rules together, and set the order of execution between rules.
 
@@ -182,12 +177,9 @@ gird.rule(
 )
 ```
 
-#### A rule with a Python function recipe.
+#### A rule with a Python function recipe
 
-To parameterize a function recipe for reusability, use, e.g.,
-`functools.partial`. Functions need to be picklable when used in rules
-defined with `parallel=True` (default). I.e., Lambda functions and locally
-defined functions require `parallel=False`.
+To parameterize a function recipe for reusability, use, e.g., `functools.partial`.
 
 ```python
 import json
@@ -212,9 +204,9 @@ gird.rule(
 )
 ```
 
-#### A Python function as a dependency to arbitrarily trigger rules.
+#### A Python function as a dependency to arbitrarily trigger rules
 
-Below, have a local file re-fetched if a remote version is updated.
+Below, have a remote file re-fetched if it has been updated.
 
 ```python
 def is_remote_newer():
@@ -227,7 +219,7 @@ gird.rule(
 )
 ```
 
-#### Compound recipes for, e.g., setup & teardown.
+#### Compound recipes for mixing shell commands with Python functions
 
 ```python
 gird.rule(
@@ -239,7 +231,7 @@ gird.rule(
 )
 ```
 
-#### Flexible rule definition with, e.g., loops or in-line nesting.
+#### Flexible rule definition with loops and other constructs
 
 ```python
 RULES = [

@@ -47,12 +47,8 @@ def build_target_graph(
     This function will call the dependency functions of the Rules that are
     dependencies for the target.
 
-    A target is outdated if
-    - it is a Phony target,
-    - it does not exist,
-    - it has a Callable dependency that returns True,
-    - it has an outdated target as a dependency, or
-    - it is older than its dependency.
+    See the function `gird.rule` for the cases when a target should be
+    considered outdated.
 
     Parameters
     ----------
