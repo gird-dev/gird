@@ -5,8 +5,19 @@ TEST_DIR = pathlib.Path(__file__).parent
 
 
 def get_times(path: pathlib.Path) -> Set[float]:
-    """Read the times from a target file with one second precision."""
-    return set(round(float(line), 1) for line in path.read_text().strip().split("\n"))
+    """Given a file with two timestamps that span a time range, return the
+    timestamps of the range with 0.1 second precision.
+    """
+    time0, time1 = (
+        round(float(line), 1) for line in path.read_text().strip().split("\n")
+    )
+    times = []
+    time = time0
+    while time <= time1:
+        times.append(time)
+        time = round(time + 0.1, 1)
+
+    return set(times)
 
 
 def test_parallel(tmp_path, run, init_tmp_path):
