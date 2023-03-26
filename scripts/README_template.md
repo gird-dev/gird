@@ -1,5 +1,10 @@
 {{ note }}
 
+[![pypi](https://img.shields.io/pypi/v/gird)](https://pypi.org/project/gird/)
+![python](https://img.shields.io/pypi/pyversions/gird)
+![license](https://img.shields.io/github/license/gird-dev/gird)
+[![codecov](https://codecov.io/gh/gird-dev/gird/branch/master/graph/badge.svg?token=CVLPXCSHZF)](https://codecov.io/gh/gird-dev/gird)
+
 # Gird
 
 Gird is a lightweight & general-purpose [Make][make]-like build tool & task
