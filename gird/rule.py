@@ -2,16 +2,21 @@
 import pathlib
 from typing import Iterable, Optional, Union
 
-from .common import Dependency, Phony, Rule, SubRecipe, Target
+from .common import Dependency, Rule, SubRecipe, Target
 from .girdfile import GIRDFILE_CONTEXT
+from .object import Phony, TimeTrackedPath, is_timetracked
+
+# Type aliases for the rule function API
+ApiTarget = Union[pathlib.Path, Target]
+ApiDependency = Union[pathlib.Path, "Rule", Dependency]
 
 
 def rule(
-    target: Target,
+    target: ApiTarget,
     deps: Optional[
         Union[
-            Dependency,
-            Iterable[Dependency],
+            ApiDependency,
+            Iterable[ApiDependency],
         ]
     ] = None,
     recipe: Optional[
@@ -48,13 +53,14 @@ def rule(
     When invoked, a rule will be run if its target is considered outdated. This
     is the case if the rule
     1) has a Phony target,
-    2) has a Path target that does not exist,
-    5) has a Path target and a Path dependency that has been modified more recently than the target,
-    4) has an outdated target or an outdated Rule as a dependency, or
+    2) has a Path/TimeTracked target that does not exist,
+    5) has a Path/TimeTracked target and a Path/TimeTracked dependency that is more recent than the target,
+    4) has an outdated Rule/target as a dependency, or
     3) has a function dependency that returns True.
 
-    Rules with outdated targets are run in topological order, i.e., all
-    dependencies are updated before the respective targets.
+    Rules with outdated targets are run in topological order within the
+    dependency graph, i.e., all outdated dependencies are updated before the
+    respective targets.
 
     Functions used as recipes need to be picklable when used in rules defined
     with `parallel=True` (default). I.e., Lambda functions and locally defined
@@ -119,14 +125,14 @@ def rule(
     >>> )
 
     A Python function as a dependency to arbitrarily trigger rules. Below, have
-    a remote file re-fetched if it has been updated.
+    a remote file re-fetched if it has changed.
 
-    >>> def is_remote_newer():
-    >>>     return get_timestamp_local() < get_timestamp_remote()
+    >>> def has_remote_changed():
+    >>>     return get_checksum_local() != get_checksum_remote()
     >>>
     >>> gird.rule(
     >>>     target=JSON1,
-    >>>     deps=is_remote_newer,
+    >>>     deps=has_remote_changed,
     >>>     recipe=fetch_remote,
     >>> )
 
@@ -138,6 +144,26 @@ def rule(
     >>>         "login",
     >>>         fetch_remote,
     >>>     ],
+    >>> )
+
+    Implement the `TimeTracked` protocol for custom targets & dependencies.
+    For example, define platform-specific logic to apply dependency tracking on
+    a remote file.
+
+    >>> class RemoteFile(gird.TimeTracked):
+    >>>     def __init__(self, url: str):
+    >>>         self._url = url
+    >>>     @property
+    >>>     def id(self):
+    >>>         return self._url
+    >>>     @property
+    >>>     def timestamp(self):
+    >>>         return get_remote_file_timestamp(self._url)
+    >>>
+    >>> gird.rule(
+    >>>     target=JSON1,
+    >>>     deps=RemoteFile(URL),
+    >>>     recipe=fetch_remote,
     >>> )
 
     Flexible rule definition with loops and other constructs.
@@ -154,29 +180,31 @@ def rule(
     >>>     for source in [JSON1, JSON2]
     >>> ]
     """
-    if not isinstance(target, (pathlib.Path, Phony)):
+    if isinstance(target, pathlib.Path):
+        target = TimeTrackedPath(target)
+    elif not is_timetracked(target) and not isinstance(target, Phony):
         raise TypeError(f"Invalid target type: '{target}'.")
 
-    # Turn deps into tuple of Path or Phony instances, not Rules.
     if deps is not None:
         if not isinstance(deps, Iterable):
             deps = [deps]
 
-        # Ensure deps is not a single-pass Iterator.
-        deps = list(deps)
-
-        for dep in deps:
-            if not isinstance(dep, (pathlib.Path, Phony, Rule)) and not callable(dep):
-                raise TypeError(f"Invalid deps type: '{dep}'.")
-
-        deps_unruly = []
+        deps_cast = []
         for dep in deps:
             if isinstance(dep, Rule):
                 dep = dep.target
-            deps_unruly.append(dep)
-        deps = tuple(deps_unruly)
+            if isinstance(dep, pathlib.Path):
+                dep = TimeTrackedPath(dep)
+            elif (
+                not callable(dep)
+                and not is_timetracked(dep)
+                and not isinstance(dep, Phony)
+            ):
+                raise TypeError(f"Invalid deps type: '{dep}'.")
+            deps_cast.append(dep)
 
-    # Turn recipe into a tuple if it isn't.
+        deps = tuple(deps_cast)
+
     if recipe is not None:
         if not isinstance(recipe, Iterable) or isinstance(recipe, str):
             recipe = [recipe]
@@ -190,7 +218,7 @@ def rule(
 
         recipe = tuple(recipe)
 
-    rule = Rule(
+    rule_instance = Rule(
         target=target,
         deps=deps,
         recipe=recipe,
@@ -200,6 +228,6 @@ def rule(
     )
 
     if GIRDFILE_CONTEXT.is_active():
-        GIRDFILE_CONTEXT.add_rule(rule)
+        GIRDFILE_CONTEXT.add_rule(rule_instance)
 
-    return rule
+    return rule_instance

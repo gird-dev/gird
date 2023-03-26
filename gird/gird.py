@@ -9,9 +9,10 @@ import sys
 import traceback
 from typing import Callable, Iterable, Optional, Union
 
-from .common import Phony, Rule, Target
+from .common import Rule, Target
 from .girdfile import import_girdfile
-from .rulesorter import RuleSorter, format_target
+from .object import Phony
+from .rulesorter import RuleSorter
 from .run import run_rules
 
 
@@ -156,7 +157,7 @@ def parse_args_and_init() -> tuple[
     helptext_subparsers = "List all rules or run a single rule."
     if len(rules) > 0:
         targets_str = ", ".join(
-            "'" + str(format_target(rule.target)) + "'" for rule in rules if rule.listed
+            "'" + rule.target.id + "'" for rule in rules if rule.listed
         )
         helptext_subparsers += f" Targets defined in {girdfile_str}: {targets_str}."
         helptext_run = f"One of the targets defined in {girdfile_str}: {targets_str}."
@@ -235,7 +236,7 @@ def parse_args_and_init() -> tuple[
 
     for rule in rules:
         subparser_rule = subparsers.add_parser(
-            str(format_target(rule.target)),
+            rule.target.id,
             description=rule.help,
             add_help=False,
         )
@@ -265,7 +266,7 @@ def parse_args_and_init() -> tuple[
         else:
             target = subcommand
         for rule in rules:
-            if target == format_target(rule.target):
+            if target == rule.target.id:
                 target = rule.target
                 break
         config: Union[RunConfig, ListConfig] = RunConfig(
@@ -340,7 +341,7 @@ def list_rules(
             indent_target = ""
             indent_help = "    "
 
-        parts.append(indent_target + format_target(rule.target))
+        parts.append(indent_target + rule.target.id)
 
         if rule.help:
             parts.append(

@@ -221,15 +221,15 @@ gird.rule(
 
 #### A Python function as a dependency to arbitrarily trigger rules
 
-Below, have a remote file re-fetched if it has been updated.
+Below, have a remote file re-fetched if it has changed.
 
 ```python
-def is_remote_newer():
-    return get_timestamp_local() < get_timestamp_remote()
+def has_remote_changed():
+    return get_checksum_local() != get_checksum_remote()
 
 gird.rule(
     target=JSON1,
-    deps=is_remote_newer,
+    deps=has_remote_changed,
     recipe=fetch_remote,
 )
 ```
@@ -243,6 +243,28 @@ gird.rule(
         "login",
         fetch_remote,
     ],
+)
+```
+
+#### Implement the `TimeTracked` protocol for custom targets & dependencies
+
+For example, define platform-specific logic to apply dependency tracking on a remote file.
+
+```python
+class RemoteFile(gird.TimeTracked):
+    def __init__(self, url: str):
+        self._url = url
+    @property
+    def id(self):
+        return self._url
+    @property
+    def timestamp(self):
+        return get_remote_file_timestamp(self._url)
+
+gird.rule(
+    target=JSON1,
+    deps=RemoteFile(URL),
+    recipe=fetch_remote,
 )
 ```
 

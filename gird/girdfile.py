@@ -6,7 +6,7 @@ import pathlib
 import sys
 from typing import Optional
 
-from .common import Rule, format_target
+from .common import Rule
 
 
 class GirdfileContext:
@@ -18,36 +18,36 @@ class GirdfileContext:
 
     def __init__(self):
         self._rules: Optional[list[Rule]] = None
-        self._targets_formatted: Optional[set[str]] = None
+        self._target_ids: Optional[set[str]] = None
 
     def __enter__(self):
         if self._rules is not None:
             raise RuntimeError("This GirdfileContext is already active.")
         self._rules = []
-        self._targets_formatted = set()
+        self._target_ids = set()
 
     def __exit__(self, *args):
         self._rules = None
-        self._targets_formatted = None
+        self._target_ids = None
 
     def is_active(self) -> bool:
         """Is this GirdfileContext active, i.e., can Rules be added with add_rule()."""
-        return self._rules is not None and self._targets_formatted is not None
+        return self._rules is not None and self._target_ids is not None
 
     def add_rule(self, rule: Rule):
         """Register a Rule with this GirdfileContext. Raise a ValueError if the
         Rule can't be added, and a RuntimeError if the GirdfileContext is not
         active.
         """
-        if self._rules is not None and self._targets_formatted is not None:
-            target_formatted = format_target(rule.target)
-            if target_formatted in self._targets_formatted:
+        target_id = rule.target.id
+        if self._rules is not None and self._target_ids is not None:
+            if target_id in self._target_ids:
                 raise ValueError(
-                    f"A Rule with the target name '{target_formatted}' has "
+                    f"A Rule with the target name '{target_id}' has "
                     "already been registered."
                 )
             self._rules.append(rule)
-            self._targets_formatted.add(target_formatted)
+            self._target_ids.add(target_id)
         else:
             raise self._not_active_error
 

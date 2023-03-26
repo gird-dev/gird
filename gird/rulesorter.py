@@ -1,10 +1,9 @@
 """Module for managing & sorting Rules as a directed acyclic graph."""
 import graphlib
-import pathlib
 from typing import Iterable, Mapping
 
-from .common import Phony, Rule, Target, format_target
-from .utils import get_path_modified_time
+from .common import Rule, Target
+from .object import Phony
 
 
 class RuleSorter(graphlib.TopologicalSorter):
@@ -13,8 +12,7 @@ class RuleSorter(graphlib.TopologicalSorter):
 
         The graph for the sorting is built with the function get_target_graph.
 
-        The nodes of RuleSorter are formatted target names, given by
-        .common.format_target.
+        The nodes of RuleSorter are the ids of the targets.
 
         A RuleSorter instance will prepare itself upon initialization. The
         prepare method doesn't need to be called.
@@ -26,9 +24,8 @@ class RuleSorter(graphlib.TopologicalSorter):
         target
             The target to be updated.
         """
-        target_formatted = format_target(target)
-        self._map_target_rule = {format_target(rule.target): rule for rule in rules}
-        self.graph = build_target_graph(self.map_target_rule, target_formatted)
+        self._map_target_rule = {rule.target.id: rule for rule in rules}
+        self.graph = build_target_graph(self.map_target_rule, target)
         super().__init__(self.graph)
         self.prepare()
 
@@ -38,18 +35,18 @@ class RuleSorter(graphlib.TopologicalSorter):
 
     @property
     def map_target_rule(self) -> dict[str, Rule]:
-        """Mapping from formatted target names to their Rules."""
+        """Mapping from target ids to their Rules."""
         return self._map_target_rule
 
 
 def build_target_graph(
     map_target_rule: Mapping[str, Rule],
-    target: str,
+    target: Target,
 ) -> dict[str, set[str]]:
     """Build a graph of rule target dependencies. Include only outdated targets.
 
-    This function will call the dependency functions of the Rules that are
-    dependencies for the target.
+    This function will call the dependency functions that are either direct or
+    indirect dependencies for the target.
 
     See the function `gird.rule` for the cases when a target should be
     considered outdated.
@@ -57,80 +54,72 @@ def build_target_graph(
     Parameters
     ----------
     map_target_rule
-        Mapping from formatted target names to Rules defined in a girdfile.
+        Mapping from target ids to Rules.
     target
-        The formatted target name of the target to be updated.
+        The target to be updated.
 
     Returns
     -------
     graph
-        Mapping from formatted target names to dependency targets. Only such
-        targets will be included that need to be updated to update the given
-        target. The graph will be empty if there's nothing to update.
+        Mapping from target ids to dependency target ids. Only such targets will
+        be included that need to be updated to update the given target. The
+        graph will be empty if there's nothing to update.
     """
 
     def build_graph(rule: Rule) -> dict[str, set[str]]:
         """Recursively build the target dependency graph."""
-
-        if isinstance(rule.target, Phony):
-            rule_is_outdated = True
-        else:
-            rule_is_outdated = not rule.target.exists()
-
         graph: dict[str, set[str]] = dict()
         predecessors: set[str] = set()
+
+        if isinstance(rule.target, Phony):
+            target_timestamp = None
+        else:
+            target_timestamp = rule.target.timestamp
+        # Rule is outdated because it has a Phony target or its target doesn't
+        # exist.
+        rule_is_outdated = target_timestamp is None
 
         if rule.deps:
             for dep in rule.deps:
                 if callable(dep):
+                    # Rule is outdated because its function dependency returns True.
                     rule_is_outdated |= dep()
                 else:
-                    if format_target(dep) in map_target_rule:
-                        dep_rule = map_target_rule[format_target(dep)]
+                    if dep.id in map_target_rule:
+                        dep_rule = map_target_rule[dep.id]
 
                         dep_graph = build_graph(dep_rule)
                         dep_is_outdated = bool(dep_graph)
 
                         if dep_is_outdated:
-                            predecessors.add(format_target(dep_rule.target))
+                            predecessors.add(dep_rule.target.id)
                             graph.update(dep_graph)
 
+                        # Rule is outdated because its rule dependency is outdated.
                         rule_is_outdated |= dep_is_outdated
 
                         dep = dep_rule.target
                     elif isinstance(dep, Phony):
                         raise TypeError(
-                            f"Phony target '{format_target(dep)}' of no rule "
-                            "used as a dependency."
+                            f"Phony target '{dep}' of no rule used as a dependency."
                         )
-                    elif isinstance(dep, pathlib.Path) and not dep.exists():
+                    elif dep.timestamp is None:
                         raise RuntimeError(
-                            f"Nonexistent file '{dep}' used as a dependency "
-                            f"is not the target of any rule."
+                            f"Nonexistent dependency '{dep}' is not the target "
+                            f"of any rule."
                         )
 
-                    if (
-                        isinstance(rule.target, pathlib.Path)
-                        and isinstance(dep, pathlib.Path)
-                        and rule.target.exists()
-                        and dep.exists()
-                    ):
-                        timestamp_target = get_path_modified_time(rule.target)
-                        timestamp_dep = get_path_modified_time(dep)
-                        if timestamp_target is None:
-                            raise RuntimeError(
-                                f"Object '{rule.target}' exists but timestamp is None."
-                            )
-                        if timestamp_dep is None:
-                            raise RuntimeError(
-                                f"Object '{dep}' exists but timestamp is None."
-                            )
-                        rule_is_outdated |= timestamp_dep > timestamp_target
+                    if target_timestamp is not None and hasattr(dep, "timestamp"):
+                        dep_timestamp = dep.timestamp
+                        if dep_timestamp is not None:
+                            # Rule is outdated because its target is older than its
+                            # dependency.
+                            rule_is_outdated |= dep_timestamp > target_timestamp
 
         if rule_is_outdated:
-            node = format_target(rule.target)
+            node = rule.target.id
             graph[node] = predecessors
 
         return graph
 
-    return build_graph(map_target_rule[target])
+    return build_graph(map_target_rule[target.id])

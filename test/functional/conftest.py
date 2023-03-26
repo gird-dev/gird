@@ -6,7 +6,6 @@ import time
 
 import pytest
 
-from gird.common import format_target
 from gird.gird import RunConfig, SubcommandResult
 from gird.gird import run_rule as gird_run_rule
 from gird.girdfile import import_girdfile
@@ -121,7 +120,7 @@ def run_rule(run):
             contains files named Makefile1 & Makefile2, those will be compared
             to the Makefiles produced by Gird.
         target
-            The formatted target of the rule to be run, i.e., as it would be
+            The id of the target of the rule to be run, i.e., as it would be
             given in the CLI.
         dry_run
             See CLI argument '--dry-run'.
@@ -138,7 +137,7 @@ def run_rule(run):
         rules = import_girdfile(girdfile)
 
         for rule in rules:
-            if target == format_target(rule.target):
+            if target == rule.target.id:
                 target = rule.target
                 break
         else:

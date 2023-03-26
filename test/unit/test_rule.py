@@ -3,6 +3,7 @@ import pathlib
 import pytest
 
 from gird import Phony
+from gird.object import TimeTrackedPath
 from gird.rule import rule as grule
 
 
@@ -10,6 +11,7 @@ def test_type_check():
     """Test that the type checks work properly."""
     grule(target=Phony("target"))
     grule(target=pathlib.Path("target"))
+    grule(target=TimeTrackedPath(pathlib.Path("target")))
 
     with pytest.raises(TypeError, match="Invalid target type: 'target'"):
         grule(target="target")
@@ -25,11 +27,13 @@ def test_type_check():
     grule(target=Phony("target"), deps=Phony("dep"))
     grule(target=Phony("target"), deps=dummy_rule_dep)
     grule(target=Phony("target"), deps=dummy_function_dep)
+    grule(target=Phony("target"), deps=TimeTrackedPath(pathlib.Path("dep")))
 
     grule(target=Phony("target"), deps=[pathlib.Path("dep")])
     grule(target=Phony("target"), deps=[Phony("dep")])
     grule(target=Phony("target"), deps=[dummy_rule_dep])
     grule(target=Phony("target"), deps=[dummy_function_dep])
+    grule(target=Phony("target"), deps=[TimeTrackedPath(pathlib.Path("dep"))])
 
     with pytest.raises(TypeError, match="Invalid deps type: 'd'."):
         grule(target=Phony("target"), deps="deps")

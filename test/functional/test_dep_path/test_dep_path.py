@@ -54,7 +54,7 @@ def test_dep_path_nonexistent(tmp_path, run_rule):
     """
     with pytest.raises(
         RuntimeError,
-        match="Nonexistent file 'dep' used as a dependency is not the target of any rule.",
+        match="Nonexistent dependency 'dep' is not the target of any rule.",
     ):
         run_rule(
             pytest_tmp_path=tmp_path,
