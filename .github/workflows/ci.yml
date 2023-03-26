@@ -1,8 +1,11 @@
-name: "Pull request workflow"
+name: "CI"
 
 on:
   workflow_dispatch:
   pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
   test:
@@ -39,3 +42,29 @@ jobs:
       - name: Run tests
         run: |
           poetry run gird test
+
+  codecov:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Poetry
+        run: pip3 install poetry
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Run tests
+        run: |
+          poetry run gird test
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3

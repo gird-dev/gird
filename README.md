@@ -61,8 +61,8 @@ WHEEL_PATH = get_wheel_path()
 
 RULE_PYTEST = rule(
     target=Phony("pytest"),
-    recipe="pytest -n auto",
-    help="Run pytest.",
+    recipe="pytest -n auto --cov=gird --cov-report=xml",
+    help="Run pytest & get code coverage report.",
 )
 
 RULE_CHECK_FORMATTING = rule(
@@ -120,13 +120,13 @@ Respective output from `gird list`:
 
 ```
 pytest
-    Run pytest.
+    Run pytest & get code coverage report.
 check_formatting
     Check formatting with Black & isort.
 check_readme_updated
     Check that README.md is updated based on README_template.md.
 test
-    - Run pytest.
+    - Run pytest & get code coverage report.
     - Check formatting with Black & isort.
     - Check that README.md is updated based on README_template.md.
 README.md

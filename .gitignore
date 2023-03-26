@@ -1,5 +1,6 @@
 .idea
 dist
-.gird
 test/benchmark/.cache
 test/benchmark/tmp
+.coverage
+coverage.xml

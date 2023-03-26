@@ -8,8 +8,8 @@ WHEEL_PATH = get_wheel_path()
 
 RULE_PYTEST = rule(
     target=Phony("pytest"),
-    recipe="pytest -n auto",
-    help="Run pytest.",
+    recipe="pytest -n auto --cov=gird --cov-report=xml",
+    help="Run pytest & get code coverage report.",
 )
 
 RULE_CHECK_FORMATTING = rule(
