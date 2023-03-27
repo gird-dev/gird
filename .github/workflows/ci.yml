@@ -9,7 +9,7 @@ on:
       - develop
 
 jobs:
-  test:
+  pytest:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -27,22 +27,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install Poetry
-        run: pip3 install poetry
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: Setup
+        uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "poetry"
 
-      - name: Install dependencies
-        run: |
-          poetry install
-
-      - name: Run tests
-        run: |
-          poetry run gird test
+      - name: Run pytest
+        run: poetry run gird pytest
 
   codecov:
     runs-on: ubuntu-latest
@@ -51,21 +42,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install Poetry
-        run: pip3 install poetry
+      - name: Setup
+        uses: ./.github/actions/setup
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
-
-      - name: Install dependencies
-        run: |
-          poetry install
-
-      - name: Run tests
-        run: |
-          poetry run gird test
+      - name: Run pytest
+        run: poetry run gird pytest
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
+
+  check_formatting:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Run check_formatting
+        run: poetry run gird check_formatting
+
+  check_readme_updated:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Run check_readme_updated
+        run: poetry run gird check_readme_updated
