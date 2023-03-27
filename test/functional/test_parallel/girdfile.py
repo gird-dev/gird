@@ -17,7 +17,7 @@ def create_target(path: pathlib.Path):
     print(f"{path} time0.")
     time0 = time.time()
     # Make sure the times are different with 0.1 second precision.
-    time.sleep(0.051)
+    time.sleep(0.101)
     print(f"{path} time1.")
     time1 = time.time()
     path.write_text(f"{time0}\n{time1}\n")
