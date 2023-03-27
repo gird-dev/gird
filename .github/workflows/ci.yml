@@ -27,22 +27,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install Poetry
-        run: pip3 install poetry
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "poetry"
-
-      - name: Install dependencies
-        run: |
-          poetry install
 
       - name: Run tests
-        run: |
-          poetry run gird test
+        run: poetry run gird test
 
   codecov:
     runs-on: ubuntu-latest
