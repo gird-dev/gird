@@ -1,7 +1,7 @@
 """Module for managing & sorting Rules as a directed acyclic graph."""
 import graphlib
 import pathlib
-from typing import Callable, Iterable, Mapping
+from typing import Iterable, Mapping
 
 from .common import Phony, Rule, Target, format_target
 from .utils import get_path_modified_time
@@ -82,22 +82,22 @@ def build_target_graph(
 
         if rule.deps:
             for dep in rule.deps:
-                if isinstance(dep, Callable):
+                if callable(dep):
                     rule_is_outdated |= dep()
                 else:
                     if format_target(dep) in map_target_rule:
-                        dep = map_target_rule[format_target(dep)]
+                        dep_rule = map_target_rule[format_target(dep)]
 
-                        dep_graph = build_graph(dep)
+                        dep_graph = build_graph(dep_rule)
                         dep_is_outdated = bool(dep_graph)
 
                         if dep_is_outdated:
-                            predecessors.add(format_target(dep.target))
+                            predecessors.add(format_target(dep_rule.target))
                             graph.update(dep_graph)
 
                         rule_is_outdated |= dep_is_outdated
 
-                        dep = dep.target
+                        dep = dep_rule.target
                     elif isinstance(dep, Phony):
                         raise TypeError(
                             f"Phony target '{format_target(dep)}' of no rule "
@@ -115,9 +115,17 @@ def build_target_graph(
                         and rule.target.exists()
                         and dep.exists()
                     ):
-                        rule_is_outdated |= get_path_modified_time(
-                            dep
-                        ) > get_path_modified_time(rule.target)
+                        timestamp_target = get_path_modified_time(rule.target)
+                        timestamp_dep = get_path_modified_time(dep)
+                        if timestamp_target is None:
+                            raise RuntimeError(
+                                f"Object '{rule.target}' exists but timestamp is None."
+                            )
+                        if timestamp_dep is None:
+                            raise RuntimeError(
+                                f"Object '{dep}' exists but timestamp is None."
+                            )
+                        rule_is_outdated |= timestamp_dep > timestamp_target
 
         if rule_is_outdated:
             node = format_target(rule.target)

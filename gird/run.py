@@ -30,8 +30,9 @@ def run_rule(
         return
 
     stdout_original = sys.stdout
+    string_io = io.StringIO()
     if output_sync:
-        sys.stdout = io.StringIO()
+        sys.stdout = string_io
 
     for subrecipe in rule.recipe:
         if isinstance(subrecipe, str):
@@ -50,7 +51,7 @@ def run_rule(
                 subrecipe()
 
     if output_sync:
-        output = sys.stdout.getvalue()
+        output = string_io.getvalue()
         sys.stdout = stdout_original
         print(output, end="")
 

@@ -7,7 +7,7 @@ import os
 import pathlib
 import sys
 import traceback
-from typing import Iterable, Optional, Union
+from typing import Callable, Iterable, Optional, Union
 
 from .common import Phony, Rule, Target
 from .girdfile import import_girdfile
@@ -123,7 +123,7 @@ def parse_args_and_init() -> tuple[
         ),
     )
 
-    args_init, args_rest = parser.parse_known_args()
+    args_init, args_unparsed = parser.parse_known_args()
 
     cwd_original = pathlib.Path.cwd()
     girdfile_arg: Optional[pathlib.Path] = args_init.girdfile
@@ -242,7 +242,7 @@ def parse_args_and_init() -> tuple[
         add_run_parser_arguments(subparser_rule)
 
     try:
-        args_rest = parser.parse_args(args_rest)
+        args_rest = parser.parse_args(args_unparsed)
     except argparse.ArgumentError as e:
         if girdfile_import_error is not None:
             raise girdfile_import_error
@@ -268,7 +268,7 @@ def parse_args_and_init() -> tuple[
             if target == format_target(rule.target):
                 target = rule.target
                 break
-        config = RunConfig(
+        config: Union[RunConfig, ListConfig] = RunConfig(
             target=target,
             verbose=args_init.verbose,
             question=args_rest.question,
@@ -359,7 +359,7 @@ def main():
         raise
 
     if isinstance(config, RunConfig):
-        func = run_rule
+        func: Callable = run_rule
     else:
         func = list_rules
 

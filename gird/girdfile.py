@@ -14,6 +14,8 @@ class GirdfileContext:
     of a girdfile.py.
     """
 
+    _not_active_error = RuntimeError(f"This GirdfileContext is not active.")
+
     def __init__(self):
         self._rules: Optional[list[Rule]] = None
         self._targets_formatted: Optional[set[str]] = None
@@ -30,14 +32,14 @@ class GirdfileContext:
 
     def is_active(self) -> bool:
         """Is this GirdfileContext active, i.e., can Rules be added with add_rule()."""
-        return self._rules is not None
+        return self._rules is not None and self._targets_formatted is not None
 
     def add_rule(self, rule: Rule):
         """Register a Rule with this GirdfileContext. Raise a ValueError if the
         Rule can't be added, and a RuntimeError if the GirdfileContext is not
         active.
         """
-        if self._rules is not None:
+        if self._rules is not None and self._targets_formatted is not None:
             target_formatted = format_target(rule.target)
             if target_formatted in self._targets_formatted:
                 raise ValueError(
@@ -47,10 +49,12 @@ class GirdfileContext:
             self._rules.append(rule)
             self._targets_formatted.add(target_formatted)
         else:
-            raise RuntimeError(f"This {type(self).__name__} is not active.")
+            raise self._not_active_error
 
-    def get_rules(self) -> Optional[list[Rule]]:
+    def get_rules(self) -> list[Rule]:
         """Get the Rules registered with this GirdfileContext."""
+        if self._rules is None:
+            raise self._not_active_error
         return self._rules
 
 
@@ -68,7 +72,7 @@ def import_girdfile(girdfile_path: pathlib.Path) -> list[Rule]:
     if not girdfile_path.exists():
         raise ImportError(f"{girdfile_str} does not exist.")
     spec = importlib.util.spec_from_file_location(module_name, girdfile_path)
-    if spec is None:
+    if spec is None or spec.loader is None:
         raise ImportError(f"Module spec cannot be loaded from {girdfile_str}.")
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
