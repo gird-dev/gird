@@ -70,6 +70,12 @@ RULE_PYTEST = rule(
     help="Run pytest & get code coverage report.",
 )
 
+RULE_MYPY = rule(
+    target=Phony("mypy"),
+    recipe="mypy --check-untyped-defs -p gird",
+    help="Run mypy.",
+)
+
 RULE_CHECK_FORMATTING = rule(
     target=Phony("check_formatting"),
     recipe=[
@@ -87,6 +93,7 @@ RULE_CHECK_README_UPDATED = rule(
 
 RULES_TEST = [
     RULE_PYTEST,
+    RULE_MYPY,
     RULE_CHECK_FORMATTING,
     RULE_CHECK_README_UPDATED,
 ]
@@ -126,12 +133,15 @@ Respective output from `gird list`:
 ```
 pytest
     Run pytest & get code coverage report.
+mypy
+    Run mypy.
 check_formatting
     Check formatting with Black & isort.
 check_readme_updated
     Check that README.md is updated based on README_template.md.
 test
     - Run pytest & get code coverage report.
+    - Run mypy.
     - Check formatting with Black & isort.
     - Check that README.md is updated based on README_template.md.
 README.md
