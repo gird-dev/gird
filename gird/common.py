@@ -35,8 +35,8 @@ class Rule:
     """Gird rule. For documentation of the fields, see the function '.rule.rule'."""
 
     target: Target
-    deps: Optional[tuple[DependencyInternal]] = None
-    recipe: Optional[tuple[SubRecipe]] = None
+    deps: Optional[tuple[DependencyInternal, ...]] = None
+    recipe: Optional[tuple[SubRecipe, ...]] = None
     help: Optional[str] = None
     parallel: bool = True
     listed: bool = True

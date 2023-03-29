@@ -166,7 +166,7 @@ def rule(
         deps = list(deps)
 
         for dep in deps:
-            if not isinstance(dep, (pathlib.Path, Phony, Rule, Callable)):
+            if not isinstance(dep, (pathlib.Path, Phony, Rule)) and not callable(dep):
                 raise TypeError(f"Invalid deps type: '{dep}'.")
 
         deps_unruly = []
@@ -185,7 +185,7 @@ def rule(
         recipe = list(recipe)
 
         for subrecipe in recipe:
-            if not isinstance(subrecipe, (str, Callable)):
+            if not isinstance(subrecipe, str) and not callable(subrecipe):
                 raise TypeError(f"Invalid recipe type: '{subrecipe}'.")
 
         recipe = tuple(recipe)
