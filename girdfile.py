@@ -12,6 +12,12 @@ RULE_PYTEST = rule(
     help="Run pytest & get code coverage report.",
 )
 
+RULE_MYPY = rule(
+    target=Phony("mypy"),
+    recipe="mypy --check-untyped-defs -p gird",
+    help="Run mypy.",
+)
+
 RULE_CHECK_FORMATTING = rule(
     target=Phony("check_formatting"),
     recipe=[
@@ -29,6 +35,7 @@ RULE_CHECK_README_UPDATED = rule(
 
 RULES_TEST = [
     RULE_PYTEST,
+    RULE_MYPY,
     RULE_CHECK_FORMATTING,
     RULE_CHECK_README_UPDATED,
 ]

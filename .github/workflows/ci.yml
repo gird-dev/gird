@@ -35,6 +35,19 @@ jobs:
       - name: Run pytest
         run: poetry run gird pytest
 
+  mypy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Run mypy
+        run: poetry run gird mypy
+
   codecov:
     runs-on: ubuntu-latest
 
