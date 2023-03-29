@@ -4,7 +4,7 @@ import importlib.util
 import os
 import pathlib
 import sys
-from typing import List, Optional, Set
+from typing import Optional
 
 from .common import Rule, format_target
 
@@ -15,8 +15,8 @@ class GirdfileContext:
     """
 
     def __init__(self):
-        self._rules: Optional[List[Rule]] = None
-        self._targets_formatted: Optional[Set[str]] = None
+        self._rules: Optional[list[Rule]] = None
+        self._targets_formatted: Optional[set[str]] = None
 
     def __enter__(self):
         if self._rules is not None:
@@ -49,7 +49,7 @@ class GirdfileContext:
         else:
             raise RuntimeError(f"This {type(self).__name__} is not active.")
 
-    def get_rules(self) -> Optional[List[Rule]]:
+    def get_rules(self) -> Optional[list[Rule]]:
         """Get the Rules registered with this GirdfileContext."""
         return self._rules
 
@@ -58,7 +58,7 @@ class GirdfileContext:
 GIRDFILE_CONTEXT = GirdfileContext()
 
 
-def import_girdfile(girdfile_path: pathlib.Path) -> List[Rule]:
+def import_girdfile(girdfile_path: pathlib.Path) -> list[Rule]:
     """Define rules by importing a 'girdfile.py'. Add the file's directory to
     sys.path.
     """

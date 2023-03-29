@@ -1,7 +1,7 @@
 """Module for managing & sorting Rules as a directed acyclic graph."""
 import graphlib
 import pathlib
-from typing import Callable, Dict, Iterable, Mapping, Set
+from typing import Callable, Iterable, Mapping
 
 from .common import Phony, Rule, Target, format_target
 from .utils import get_path_modified_time
@@ -37,7 +37,7 @@ class RuleSorter(graphlib.TopologicalSorter):
         return bool(self.graph)
 
     @property
-    def map_target_rule(self) -> Dict[str, Rule]:
+    def map_target_rule(self) -> dict[str, Rule]:
         """Mapping from formatted target names to their Rules."""
         return self._map_target_rule
 
@@ -45,7 +45,7 @@ class RuleSorter(graphlib.TopologicalSorter):
 def build_target_graph(
     map_target_rule: Mapping[str, Rule],
     target: str,
-) -> Dict[str, Set[str]]:
+) -> dict[str, set[str]]:
     """Build a graph of rule target dependencies. Include only outdated targets.
 
     This function will call the dependency functions of the Rules that are
@@ -69,7 +69,7 @@ def build_target_graph(
         target. The graph will be empty if there's nothing to update.
     """
 
-    def build_graph(rule: Rule) -> Dict[str, Set[str]]:
+    def build_graph(rule: Rule) -> dict[str, set[str]]:
         """Recursively build the target dependency graph."""
 
         if isinstance(rule.target, Phony):
@@ -77,8 +77,8 @@ def build_target_graph(
         else:
             rule_is_outdated = not rule.target.exists()
 
-        graph: Dict[str, Set[str]] = dict()
-        predecessors: Set[str] = set()
+        graph: dict[str, set[str]] = dict()
+        predecessors: set[str] = set()
 
         if rule.deps:
             for dep in rule.deps:

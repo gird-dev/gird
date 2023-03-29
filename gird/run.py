@@ -3,7 +3,6 @@ import concurrent.futures
 import io
 import subprocess
 import sys
-from typing import Dict
 
 from .common import Rule
 from .rulesorter import RuleSorter
@@ -77,7 +76,7 @@ def run_rules(
         See the function 'run_rule'.
     """
     executor = concurrent.futures.ProcessPoolExecutor()
-    map_future_target: Dict[concurrent.futures.Future, str] = dict()
+    map_future_target: dict[concurrent.futures.Future, str] = dict()
     while sorter.is_active():
         targets = sorter.get_ready()
         targets_done = set()

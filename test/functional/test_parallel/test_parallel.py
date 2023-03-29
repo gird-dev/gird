@@ -1,10 +1,9 @@
 import pathlib
-from typing import Set
 
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def get_times(path: pathlib.Path) -> Set[float]:
+def get_times(path: pathlib.Path) -> set[float]:
     """Given a file with two timestamps that span a time range, return the
     timestamps of the range with 0.1 second precision.
     """

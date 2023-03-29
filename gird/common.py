@@ -3,7 +3,7 @@
 import dataclasses
 import os
 import pathlib
-from typing import Any, Callable, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Union
 
 # Type aliases
 Target = Union[pathlib.Path, "Phony"]
@@ -35,8 +35,8 @@ class Rule:
     """Gird rule. For documentation of the fields, see the function '.rule.rule'."""
 
     target: Target
-    deps: Optional[Tuple[DependencyInternal]] = None
-    recipe: Optional[Tuple[SubRecipe]] = None
+    deps: Optional[tuple[DependencyInternal]] = None
+    recipe: Optional[tuple[SubRecipe]] = None
     help: Optional[str] = None
     parallel: bool = True
     listed: bool = True

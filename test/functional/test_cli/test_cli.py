@@ -1,11 +1,10 @@
 import pathlib
 import shutil
-from typing import List
 
 TEST_DIR = pathlib.Path(__file__).parent
 
 
-def init_cli_test(pytest_tmp_path) -> List[str]:
+def init_cli_test(pytest_tmp_path) -> list[str]:
     """Initialize pytest_tmp_path for the CLI tests. Return optional arguments
     to be used in all CLI tests.
     """

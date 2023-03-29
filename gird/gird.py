@@ -7,7 +7,7 @@ import os
 import pathlib
 import sys
 import traceback
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Iterable, Optional, Union
 
 from .common import Phony, Rule, Target
 from .girdfile import import_girdfile
@@ -74,8 +74,8 @@ def exit_with_result(result: SubcommandResult):
         exit(0)
 
 
-def parse_args_and_init() -> Tuple[
-    List[Rule],
+def parse_args_and_init() -> tuple[
+    list[Rule],
     Union[RunConfig, ListConfig],
 ]:
     """Parse CLI arguments, import rules from a girdfile, and change current
