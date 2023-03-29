@@ -76,8 +76,6 @@ def run_rules(
     output_sync
         See the function 'run_rule'.
     """
-    sorter.prepare()
-
     executor = concurrent.futures.ProcessPoolExecutor()
     map_future_target: Dict[concurrent.futures.Future, str] = dict()
     while sorter.is_active():

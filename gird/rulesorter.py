@@ -16,6 +16,9 @@ class RuleSorter(graphlib.TopologicalSorter):
         The nodes of RuleSorter are formatted target names, given by
         .common.format_target.
 
+        A RuleSorter instance will prepare itself upon initialization. The
+        prepare method doesn't need to be called.
+
         Parameters
         ----------
         rules
@@ -27,6 +30,7 @@ class RuleSorter(graphlib.TopologicalSorter):
         self._map_target_rule = {format_target(rule.target): rule for rule in rules}
         self.graph = build_target_graph(self.map_target_rule, target_formatted)
         super().__init__(self.graph)
+        self.prepare()
 
     def is_target_outdated(self) -> bool:
         """Is the given target outdated, i.e., are there any rules to be run."""
