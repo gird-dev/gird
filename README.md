@@ -41,7 +41,7 @@ Gird requires Python version 3.9 or newer, and is supported on Linux & macOS.
 
 ## Usage
 
-Define "rules" in *girdfile.py*. Depending on the composition of a rule
+Define rules in *girdfile.py*. Depending on the composition of a rule
 definition, a rule can, for example,
 
 - define a recipe to run a task, e.g., to update a target file,
@@ -51,106 +51,23 @@ definition, a rule can, for example,
 
 A rule is invoked by `gird {target}`. To list rules, run `gird list`.
 
-### Example girdfile.py
+When invoked, a rule will be run if its target is considered outdated. This
+is the case if the rule
+1) has a `Phony` target,
+2) has a `Path`/`TimeTracked` target that does not exist,
+5) has a `Path`/`TimeTracked` target and a `Path`/`TimeTracked` dependency that is more recent than the target,
+4) has an outdated `Rule`/target as a dependency, or
+3) has a function dependency that returns `True`.
 
-This is the girdfile.py of the project itself.
+Rules with outdated targets are run in topological order within the
+dependency graph, i.e., all outdated dependencies are updated before the
+respective targets.
 
-```python
-from itertools import chain
-from pathlib import Path
+Python functions used as recipes need to be picklable when used in rules
+defined with `parallel=True` (default). I.e., Lambda functions and locally
+defined functions require `parallel=False`.
 
-from gird import Phony, rule
-from scripts import assert_readme_updated, get_wheel_path, render_readme
 
-WHEEL_PATH = get_wheel_path()
-
-RULE_PYTEST = rule(
-    target=Phony("pytest"),
-    recipe="pytest -n auto --cov=gird --cov-report=xml",
-    help="Run pytest & get code coverage report.",
-)
-
-RULE_MYPY = rule(
-    target=Phony("mypy"),
-    recipe="mypy --check-untyped-defs -p gird",
-    help="Run mypy.",
-)
-
-RULE_CHECK_FORMATTING = rule(
-    target=Phony("check_formatting"),
-    recipe=[
-        "black --check gird scripts test girdfile.py",
-        "isort --check gird scripts test girdfile.py",
-    ],
-    help="Check formatting with Black & isort.",
-)
-
-RULE_CHECK_README_UPDATED = rule(
-    target=Phony("check_readme_updated"),
-    recipe=assert_readme_updated,
-    help="Check that README.md is updated based on README_template.md.",
-)
-
-RULES_TEST = [
-    RULE_PYTEST,
-    RULE_MYPY,
-    RULE_CHECK_FORMATTING,
-    RULE_CHECK_README_UPDATED,
-]
-
-rule(
-    target=Phony("test"),
-    deps=RULES_TEST,
-    help="\n".join(f"- {rule.help}" for rule in RULES_TEST),
-)
-
-rule(
-    target=Path("README.md"),
-    deps=chain(
-        *(Path(path).iterdir() for path in ("scripts", "gird")),
-        [Path("girdfile.py"), Path("pyproject.toml")],
-    ),
-    recipe=render_readme,
-    help="Render README.md based on README_template.md.",
-)
-
-rule(
-    target=WHEEL_PATH,
-    recipe="poetry build --format wheel",
-    help="Build distribution packages for the current version.",
-)
-
-rule(
-    target=Phony("publish"),
-    deps=WHEEL_PATH,
-    recipe=f"twine upload --repository gird {WHEEL_PATH}",
-    help="Publish packages of the current version to PyPI.",
-)
-```
-
-Respective output from `gird list`:
-
-```
-pytest
-    Run pytest & get code coverage report.
-mypy
-    Run mypy.
-check_formatting
-    Check formatting with Black & isort.
-check_readme_updated
-    Check that README.md is updated based on README_template.md.
-test
-    - Run pytest & get code coverage report.
-    - Run mypy.
-    - Check formatting with Black & isort.
-    - Check that README.md is updated based on README_template.md.
-README.md
-    Render README.md based on README_template.md.
-dist/gird-2.0.2-py3-none-any.whl
-    Build distribution packages for the current version.
-publish
-    Publish packages of the current version to PyPI.
-```
 
 ### Example rules
 
@@ -168,7 +85,7 @@ RULE_BUILD = gird.rule(
 )
 ```
 
-#### A rule with a phony target (not a file)
+#### A rule with a phony target
 
 ```python
 RULE_TEST = gird.rule(
@@ -283,4 +200,105 @@ RULES = [
     for source in [JSON1, JSON2]
 ]
 
+```
+
+### Example girdfile.py
+
+This is the girdfile.py of the project itself.
+
+```python
+from itertools import chain
+from pathlib import Path
+
+from gird import Phony, rule
+from scripts import assert_readme_updated, get_wheel_path, render_readme
+
+WHEEL_PATH = get_wheel_path()
+
+RULE_PYTEST = rule(
+    target=Phony("pytest"),
+    recipe="pytest -n auto --cov=gird --cov-report=xml",
+    help="Run pytest & get code coverage report.",
+)
+
+RULE_MYPY = rule(
+    target=Phony("mypy"),
+    recipe="mypy --check-untyped-defs -p gird",
+    help="Run mypy.",
+)
+
+RULE_CHECK_FORMATTING = rule(
+    target=Phony("check_formatting"),
+    recipe=[
+        "black --check gird scripts test girdfile.py",
+        "isort --check gird scripts test girdfile.py",
+    ],
+    help="Check formatting with Black & isort.",
+)
+
+RULE_CHECK_README_UPDATED = rule(
+    target=Phony("check_readme_updated"),
+    recipe=assert_readme_updated,
+    help="Check that README.md is updated based on README_template.md.",
+)
+
+RULES_TEST = [
+    RULE_PYTEST,
+    RULE_MYPY,
+    RULE_CHECK_FORMATTING,
+    RULE_CHECK_README_UPDATED,
+]
+
+rule(
+    target=Phony("test"),
+    deps=RULES_TEST,
+    help="\n".join(f"- {rule.help}" for rule in RULES_TEST),
+)
+
+rule(
+    target=Path("README.md"),
+    deps=chain(
+        *(Path(path).iterdir() for path in ("scripts", "gird")),
+        [Path("girdfile.py"), Path("pyproject.toml")],
+    ),
+    recipe=render_readme,
+    help="Render README.md based on README_template.md.",
+)
+
+rule(
+    target=WHEEL_PATH,
+    recipe="poetry build --format wheel",
+    help="Build distribution packages for the current version.",
+)
+
+rule(
+    target=Phony("publish"),
+    deps=WHEEL_PATH,
+    recipe=f"twine upload --repository gird {WHEEL_PATH}",
+    help="Publish packages of the current version to PyPI.",
+)
+```
+
+Respective output from `gird list`:
+
+```
+pytest
+    Run pytest & get code coverage report.
+mypy
+    Run mypy.
+check_formatting
+    Check formatting with Black & isort.
+check_readme_updated
+    Check that README.md is updated based on README_template.md.
+test
+    - Run pytest & get code coverage report.
+    - Run mypy.
+    - Check formatting with Black & isort.
+    - Check that README.md is updated based on README_template.md.
+README.md
+    Render README.md based on README_template.md.
+dist/gird-2.0.2-py3-none-any.whl
+    Build distribution packages for the current version.
+publish
+    Publish packages of the current version to PyPI.
 ```

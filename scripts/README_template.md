@@ -1,4 +1,4 @@
-{{ note }}
+{{ autogeneration_note }}
 
 [![pypi](https://img.shields.io/pypi/v/gird)](https://pypi.org/project/gird/)
 ![python](https://img.shields.io/pypi/pyversions/gird)
@@ -40,7 +40,7 @@ Gird requires Python version 3.9 or newer, and is supported on Linux & macOS.
 
 ## Usage
 
-Define "rules" in *girdfile.py*. Depending on the composition of a rule
+Define rules in *girdfile.py*. Depending on the composition of a rule
 definition, a rule can, for example,
 
 - define a recipe to run a task, e.g., to update a target file,
@@ -49,6 +49,12 @@ definition, a rule can, for example,
 - use Python functions for more complex dependency & recipe functionality.
 
 A rule is invoked by `gird {target}`. To list rules, run `gird list`.
+
+{{ usage_notes }}
+
+### Example rules
+
+{{ example_rules }}
 
 ### Example girdfile.py
 
@@ -59,7 +65,3 @@ This is the girdfile.py of the project itself.
 Respective output from `gird list`:
 
 {{ example_gird_list }}
-
-### Example rules
-
-{{ example_rules }}

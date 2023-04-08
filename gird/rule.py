@@ -52,19 +52,19 @@ def rule(
 
     When invoked, a rule will be run if its target is considered outdated. This
     is the case if the rule
-    1) has a Phony target,
-    2) has a Path/TimeTracked target that does not exist,
-    5) has a Path/TimeTracked target and a Path/TimeTracked dependency that is more recent than the target,
-    4) has an outdated Rule/target as a dependency, or
-    3) has a function dependency that returns True.
+    1) has a `Phony` target,
+    2) has a `Path`/`TimeTracked` target that does not exist,
+    5) has a `Path`/`TimeTracked` target and a `Path`/`TimeTracked` dependency that is more recent than the target,
+    4) has an outdated `Rule`/target as a dependency, or
+    3) has a function dependency that returns `True`.
 
     Rules with outdated targets are run in topological order within the
     dependency graph, i.e., all outdated dependencies are updated before the
     respective targets.
 
-    Functions used as recipes need to be picklable when used in rules defined
-    with `parallel=True` (default). I.e., Lambda functions and locally defined
-    functions require `parallel=False`.
+    Python functions used as recipes need to be picklable when used in rules
+    defined with `parallel=True` (default). I.e., Lambda functions and locally
+    defined functions require `parallel=False`.
 
     Examples
     --------
@@ -81,7 +81,7 @@ def rule(
     >>>     recipe="python -m build --wheel",
     >>> )
 
-    A rule with a phony target (not a file).
+    A rule with a phony target.
 
     >>> RULE_TEST = gird.rule(
     >>>     target=gird.Phony("test"),
