@@ -19,5 +19,5 @@ runs:
           cache: "poetry"
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --without benchmark
         shell: bash

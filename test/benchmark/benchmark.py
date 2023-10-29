@@ -3,7 +3,12 @@ import subprocess
 import sys
 import time
 
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ImportError as e:
+    raise ImportError(
+        "Can't import matplotlib. Run `poetry install --with benchmark`."
+    ) from e
 
 DIR_BENCHMARK = pathlib.Path(__file__).parent
 DIR_CACHE = DIR_BENCHMARK / ".cache"
