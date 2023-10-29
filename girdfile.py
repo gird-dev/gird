@@ -56,15 +56,12 @@ rule(
     help="Render README.md based on README_template.md.",
 )
 
-rule(
-    target=WHEEL_PATH,
-    recipe="poetry build --format wheel",
+RULE_BUILD = rule(
+    target=Phony("build"),
+    deps=rule(
+        target=WHEEL_PATH,
+        recipe="poetry build --format wheel",
+        listed=False,
+    ),
     help="Build distribution packages for the current version.",
-)
-
-rule(
-    target=Phony("publish"),
-    deps=WHEEL_PATH,
-    recipe=f"twine upload --repository gird {WHEEL_PATH}",
-    help="Publish packages of the current version to PyPI.",
 )

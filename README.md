@@ -265,17 +265,14 @@ rule(
     help="Render README.md based on README_template.md.",
 )
 
-rule(
-    target=WHEEL_PATH,
-    recipe="poetry build --format wheel",
+RULE_BUILD = rule(
+    target=Phony("build"),
+    deps=rule(
+        target=WHEEL_PATH,
+        recipe="poetry build --format wheel",
+        listed=False,
+    ),
     help="Build distribution packages for the current version.",
-)
-
-rule(
-    target=Phony("publish"),
-    deps=WHEEL_PATH,
-    recipe=f"twine upload --repository gird {WHEEL_PATH}",
-    help="Publish packages of the current version to PyPI.",
 )
 ```
 
@@ -297,8 +294,6 @@ test
     - Check that README.md is updated based on README_template.md.
 README.md
     Render README.md based on README_template.md.
-dist/gird-2.1.1-py3-none-any.whl
+build
     Build distribution packages for the current version.
-publish
-    Publish packages of the current version to PyPI.
 ```

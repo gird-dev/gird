@@ -1,0 +1,49 @@
+name: publish
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Build wheel
+        run: poetry run gird build
+
+      - name: Store wheel as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          path: dist/*.whl
+
+  publish:
+    needs: [test, build]
+
+    runs-on: ubuntu-latest
+
+    # Use the environment that is configured on PyPI for trusted publishing. The
+    # usage of the environment should be set to require manual approval.
+    environment:
+      name: pypi
+      url: https://pypi.org/project/gird/
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Get wheel artifact
+        uses: actions/download-artifact@v3
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
