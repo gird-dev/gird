@@ -25,7 +25,8 @@ jobs:
       - name: Store wheel as artifact
         uses: actions/upload-artifact@v3
         with:
-          path: dist/*.whl
+          name: dist
+          path: dist
 
   publish:
     needs: [test, build]
@@ -44,6 +45,9 @@ jobs:
     steps:
       - name: Get wheel artifact
         uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
