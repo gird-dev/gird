@@ -63,10 +63,6 @@ Rules with outdated targets are run in topological order within the
 dependency graph, i.e., all outdated dependencies are updated before the
 respective targets.
 
-Python functions used as recipes need to be picklable when used in rules
-defined with `parallel=True` (default). I.e., Lambda functions and locally
-defined functions require `parallel=False`.
-
 
 
 ### Example rules

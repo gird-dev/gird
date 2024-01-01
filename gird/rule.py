@@ -39,6 +39,9 @@ def rule(
         Dependencies of the target.
     recipe
         Recipe to update the target. Strings will be executed as shell commands.
+        Python function recipes need to be picklable if parallel is True. I.e.,
+        Lambda functions and locally defined functions require parallel to be
+        False.
     help
         Helptext/description of the rule.
     parallel
@@ -61,10 +64,6 @@ def rule(
     Rules with outdated targets are run in topological order within the
     dependency graph, i.e., all outdated dependencies are updated before the
     respective targets.
-
-    Python functions used as recipes need to be picklable when used in rules
-    defined with `parallel=True` (default). I.e., Lambda functions and locally
-    defined functions require `parallel=False`.
 
     Examples
     --------
