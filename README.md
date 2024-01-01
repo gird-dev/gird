@@ -265,7 +265,9 @@ rule(
     help="Render README.md based on README_template.md.",
 )
 
-RULE_BUILD = rule(
+# Wrap the rule to build WHEEL_PATH in a phony rule for simpler invocation.
+# Don't include the inner rule in `gird list`.
+rule(
     target=Phony("build"),
     deps=rule(
         target=WHEEL_PATH,
