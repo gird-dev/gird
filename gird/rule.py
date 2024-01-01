@@ -48,7 +48,7 @@ def rule(
         Run the rule in parallel with other rules, i.e., in a separate process.
         Recipes that require input may fail.
     listed
-        Include the rule in 'gird list'.
+        Include the rule in `gird list`.
 
     Notes
     -----
