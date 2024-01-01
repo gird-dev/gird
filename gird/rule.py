@@ -56,8 +56,8 @@ def rule(
     When invoked, a rule will be run if its target is considered outdated. This
     is the case if the rule
     1) has a `Phony` target,
-    2) has a `Path`/`TimeTracked` target that does not exist,
-    3) has a `Path`/`TimeTracked` target and a `Path`/`TimeTracked` dependency that is more recent than the target,
+    2) has a `Path` target that does not exist,
+    3) has a `Path` target and a `Path` dependency that is more recent than the target,
     4) has an outdated `Rule`/target as a dependency, or
     5) has a function dependency that returns `True`.
 
@@ -68,28 +68,32 @@ def rule(
     Examples
     --------
 
-    A rule with files as its target & dependency.
+    A rule with files as its target & dependency. A girdfile.py with the
+    following contents defines a single rule that, when `gird package.whl` is
+    invoked, builds *package.whl* whenever *module.py* is modified. If module.py
+    hasn't been modified, the packaging recipe will not be executed.
 
     >>> import pathlib
     >>> import gird
-    >>> WHEEL = pathlib.Path("package.whl")
     >>>
     >>> RULE_BUILD = gird.rule(
-    >>>     target=WHEEL,
+    >>>     target=pathlib.Path("package.whl"),
     >>>     deps=pathlib.Path("module.py"),
     >>>     recipe="python -m build --wheel",
     >>> )
 
-    A rule with a phony target.
+    A rule with a phony target. Phony targets can be used when there's not any
+    actual target to update. The recipe of a rule with a phony target is always
+    executed.
 
     >>> RULE_TEST = gird.rule(
     >>>     target=gird.Phony("test"),
-    >>>     deps=WHEEL,
     >>>     recipe="pytest",
     >>> )
 
-    A rule with other rules as dependencies. Group multiple rules together, and
-    set the order of execution between rules.
+    A rule with other rules as dependencies. This is equivalent to using the
+    targets of the rules as dependencies. Here, a phony target is used to give
+    an alias to a group of other rules.
 
     >>> gird.rule(
     >>>     target=gird.Phony("all"),
@@ -99,28 +103,31 @@ def rule(
     >>>     ],
     >>> )
 
-    A rule with a Python function recipe. To parameterize a function recipe for
-    reusability, use, e.g., `functools.partial`.
+    A compound recipe for mixing Python functions with shell commands.
 
-    >>> import json
-    >>> import functools
-    >>> JSON1 = pathlib.Path("file1.json")
-    >>> JSON2 = pathlib.Path("file2.json")
-    >>>
-    >>> def create_target(json_in: pathlib.Path, json_out: pathlib.Path):
-    >>>      json_out.write_text(
-    >>>          json.dumps(
-    >>>              json.loads(
-    >>>                  json_in.read_text()
-    >>>              ).update(value2="value2")
-    >>>          )
-    >>>      )
+    >>> FILE1 = pathlib.Path("file1")
     >>>
     >>> gird.rule(
-    >>>     target=JSON2,
-    >>>     deps=JSON1,
-    >>>     recipe=functools.partial(create_target, JSON1, JSON2),
-    >>>     parallel=True,
+    >>>     target=FILE1,
+    >>>     recipe=[
+    >>>         FILE1.touch,
+    >>>         f"echo text >> {FILE1.resolve()}",
+    >>>     ],
+    >>> )
+
+    A Python function as a recipe with parameters. Use, e.g.,
+    `functools.partial` to turn a function and its arguments into a callable
+    with no arguments.
+
+    >>> import functools
+    >>> import shutil
+    >>>
+    >>> FILE2 = pathlib.Path("file2")
+    >>>
+    >>> gird.rule(
+    >>>     target=FILE2,
+    >>>     deps=FILE1,
+    >>>     recipe=functools.partial(shutil.copy, FILE1, FILE2),
     >>> )
 
     A Python function as a dependency to arbitrarily trigger rules. Below, have
@@ -130,22 +137,15 @@ def rule(
     >>>     return get_checksum_local() != get_checksum_remote()
     >>>
     >>> gird.rule(
-    >>>     target=JSON1,
+    >>>     target=FILE1,
     >>>     deps=has_remote_changed,
     >>>     recipe=fetch_remote,
     >>> )
 
-    Compound recipes for mixing shell commands with Python functions.
+    Implement the `TimeTracked` protocol for custom targets & dependencies. Such
+    types are treated identically to `Path` objects, which respectively have a
+    time of modification that is tracked for resolving outdatedness.
 
-    >>> gird.rule(
-    >>>     target=JSON1,
-    >>>     recipe=[
-    >>>         "login",
-    >>>         fetch_remote,
-    >>>     ],
-    >>> )
-
-    Implement the `TimeTracked` protocol for custom targets & dependencies.
     For example, define platform-specific logic to apply dependency tracking on
     a remote file.
 
@@ -160,23 +160,25 @@ def rule(
     >>>         return get_remote_file_timestamp(self._url)
     >>>
     >>> gird.rule(
-    >>>     target=JSON1,
+    >>>     target=FILE1,
     >>>     deps=RemoteFile(URL),
     >>>     recipe=fetch_remote,
     >>> )
 
-    Flexible rule definition with loops and other constructs.
+    Define rules flexibly. All that matter are the `rule` function calls that
+    are executed when the girdfile.py is imported. The structure of the file and
+    other implementation details are completely up to the user.
 
     >>> RULES = [
     >>>     gird.rule(
-    >>>         target=source.with_suffix(".json.gz"),
+    >>>         target=source.with_suffix(".gz"),
     >>>         deps=gird.rule(
     >>>             target=source,
     >>>             recipe=functools.partial(fetch_remote, source),
     >>>         ),
     >>>         recipe=f"gzip -k {source.resolve()}",
     >>>     )
-    >>>     for source in [JSON1, JSON2]
+    >>>     for source in [FILE1, FILE2]
     >>> ]
     """
     if isinstance(target, pathlib.Path):
