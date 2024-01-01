@@ -39,7 +39,7 @@ def get_readme_usage_notes() -> str:
             rule_doc.find("Notes\n    -----\n\n") : rule_doc.find(
                 "Examples\n    --------\n\n"
             )
-        ].split("\n\n")[1:]
+        ].split("\n\n")[1:-1]
     )
     notes = "\n".join(note_line.strip() for note_line in notes_raw.split("\n"))
     return notes

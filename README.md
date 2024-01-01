@@ -63,8 +63,6 @@ Rules with outdated targets are run in topological order within the
 dependency graph, i.e., all outdated dependencies are updated before the
 respective targets.
 
-
-
 ### Example rules
 
 #### A rule with files as its target & dependency
