@@ -8,7 +8,7 @@ from .object import Phony, TimeTrackedPath, is_timetracked
 
 # Type aliases for the rule function API
 ApiTarget = Union[pathlib.Path, Target]
-ApiDependency = Union[pathlib.Path, "Rule", Dependency]
+ApiDependency = Union[pathlib.Path, Rule, Dependency]
 
 
 def rule(
