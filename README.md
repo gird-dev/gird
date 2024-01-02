@@ -49,7 +49,8 @@ definition, a rule can, for example,
   and
 - use Python functions for more complex dependency & recipe functionality.
 
-A rule is invoked by `gird {target}`. To list rules, run `gird list`.
+A rule is invoked via the CLI by `gird {target}`. To list rules, run
+`gird list`.
 
 When invoked, a rule will be run if its target is considered outdated. This
 is the case if the rule
