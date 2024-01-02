@@ -62,7 +62,7 @@ is the case if the rule
 
 Rules with outdated targets are run in topological order within the
 dependency graph, i.e., all outdated dependencies are updated before the
-respective targets.
+respective targets. By default, rules are run in parallel when possible.
 
 ### Example rules
 
