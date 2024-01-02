@@ -207,16 +207,14 @@ def rule(
 
     if recipe is not None:
         if not isinstance(recipe, Iterable) or isinstance(recipe, str):
-            recipe = [recipe]
+            recipe = (recipe,)
 
         # Ensure recipe is not a single-pass Iterator.
-        recipe = list(recipe)
+        recipe = tuple(recipe)
 
         for subrecipe in recipe:
             if not isinstance(subrecipe, str) and not callable(subrecipe):
                 raise TypeError(f"Invalid recipe type: '{subrecipe}'.")
-
-        recipe = tuple(recipe)
 
     rule_instance = Rule(
         target=target,
